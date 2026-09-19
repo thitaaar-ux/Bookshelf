@@ -16,7 +16,7 @@ import { GamificationBadgesModal } from './components/GamificationBadgesModal';
 import { ArchitectureModal } from './components/ArchitectureModal';
 import { 
   BookOpen, Plus, Sparkles, Bell, Award, Calendar, 
-  CheckCircle2, Flame, ArrowRight, ShieldCheck, Cpu 
+  CheckCircle2, Flame, ArrowRight, ShieldCheck, Cpu, X 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -42,7 +42,7 @@ export default function App() {
     return saved ? JSON.parse(saved) : INITIAL_READING_LOGS;
   });
 
-  const [currentTheme, setCurrentTheme] = useState('theme-obsidian');
+  const [currentTheme, setCurrentTheme] = useState('theme-editorial');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'library' | 'architecture'>('dashboard');
 
   // Modals state
@@ -161,9 +161,9 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-neutral-950 text-neutral-100 flex flex-col font-sans ${currentTheme}`}>
+    <div className="min-h-screen bg-[#fdfcf8] text-[#1c1c1c] flex flex-col font-sans selection:bg-[#ff4d00] selection:text-white">
       
-      {/* 1. Global Navigation Header */}
+      {/* 1. Global Navigation Header (Variation 3) */}
       <Header
         activeTab={activeTab}
         setActiveTab={(tab) => {
@@ -181,7 +181,7 @@ export default function App() {
         streakCount={7}
       />
 
-      {/* 2. Main Tsundoku Clearance Hero Section */}
+      {/* 2. Main Tsundoku Clearance Hero Section (Variation 3 Headline & Stat List) */}
       <TsundokuHero
         books={books}
         schedule={schedule}
@@ -190,44 +190,10 @@ export default function App() {
         onQuickLog={() => setIsQuickLogModalOpen(true)}
       />
 
-      {/* 3. Core Workspace & Library */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* 3. Main Body Container (Variation 3 Layout: max-w-[1400px], generous padding) */}
+      <main className="flex-1 max-w-[1400px] w-full mx-auto px-4 sm:px-8 lg:px-12 py-10 sm:py-14 space-y-12">
         
-        {/* Section title & Quick guide */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-neutral-800/80 mb-6 gap-3">
-          <div>
-            <h1 className="text-xl font-black tracking-tight text-white flex items-center space-x-2">
-              <span>คลังหนังสือ &amp; กองดอง (Tsundoku Library)</span>
-              <span className="text-xs font-mono font-normal px-2 py-0.5 rounded bg-neutral-900 border border-neutral-700 text-neutral-400">
-                {books.length} เล่มในระบบ
-              </span>
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">
-              จัดการความคืบหน้าแบบเรียลไทม์ เชื่อมโยงสถานะไปยัง LINE Messaging Webhook
-            </p>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <button
-              id="main-open-architecture-btn"
-              onClick={() => setIsArchitectureOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-xs font-medium text-neutral-200 transition cursor-pointer"
-            >
-              <Cpu className="w-3.5 h-3.5 text-sky-400" />
-              <span>ดูสเปกสถาปัตยกรรม &amp; DB</span>
-            </button>
-            <button
-              id="main-open-line-sim-btn"
-              onClick={() => setIsLineSimulatorOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-emerald-950/60 hover:bg-emerald-900/40 border border-emerald-600/40 text-xs font-medium text-emerald-300 transition cursor-pointer"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-              <span>ทดสอบ LINE Webhook</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Book Management Component */}
+        {/* Book Management Component (Editorial List / Grid) */}
         <BookManagement
           books={books}
           activeBookId={schedule.activeBookId}
@@ -239,65 +205,95 @@ export default function App() {
         />
 
         {/* Reading History & Quick Analytics Feed */}
-        <div className="mt-12 pt-8 border-t border-neutral-800">
-          <div className="flex items-center justify-between mb-4">
+        <section className="pt-8 border-t-2 border-[#1c1c1c] space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h3 className="text-sm font-bold text-white">บันทึกการอ่านล่าสุด (Recent Reading Logs)</h3>
-              <p className="text-xs text-neutral-400">ประวัติการอ่านที่บันทึกผ่าน Web และ LINE Quick Reply</p>
+              <span className="meta text-[#ff4d00] font-bold">TELEMETRY // LOGS</span>
+              <h3 className="text-xl sm:text-2xl font-black text-[#1c1c1c] tracking-tight uppercase mt-0.5">
+                ประวัติการอ่านล่าสุด (Recent Logs)
+              </h3>
+              <p className="text-xs text-[#1c1c1c]/60">
+                ซิงค์แบบสองทางระหว่าง Web Interface และ LINE Quick Reply Webhook
+              </p>
             </div>
             <button
               onClick={() => setIsBadgesOpen(true)}
-              className="text-xs text-neutral-400 hover:text-white transition underline underline-offset-4"
+              className="meta text-[#1c1c1c] hover:text-[#ff4d00] font-bold underline underline-offset-4 cursor-pointer transition"
             >
-              ดูสถิติและเหรียญรางวัลทั้งหมด →
+              ดูสถิติและเหรียญตราทั้งหมด →
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {readingLogs.slice(0, 3).map((log) => (
               <div
                 key={log.id}
-                className="p-3.5 rounded-xl bg-neutral-900/60 border border-neutral-800 text-xs flex flex-col justify-between"
+                className="p-5 bg-white border border-[#1c1c1c] shadow-[3px_3px_0px_#1c1c1c] flex flex-col justify-between space-y-3"
               >
                 <div>
-                  <div className="flex items-center justify-between text-neutral-400 text-[11px] mb-1">
-                    <span className="font-mono">{log.timestamp}</span>
-                    <span className="px-1.5 py-0.2 rounded bg-neutral-800 text-[10px] font-mono text-neutral-300">
-                      {log.source === 'line_quick_reply' ? 'LINE API' : 'Web Manual'}
+                  <div className="flex items-center justify-between text-[11px] mb-1.5 pb-2 border-b border-[#e8e6df]">
+                    <span className="font-mono text-[#1c1c1c]/60">{log.timestamp}</span>
+                    <span className="meta font-bold text-[#ff4d00]">
+                      {log.source === 'line_quick_reply' ? '● LINE API' : '○ WEB LOG'}
                     </span>
                   </div>
-                  <h4 className="font-semibold text-white truncate">{log.bookTitle}</h4>
-                  <p className="text-neutral-400 mt-1">
-                    อ่านหน้า {log.fromPage} → {log.toPage} (<strong className="text-emerald-400">+{log.pagesRead} หน้า</strong>)
+                  <h4 className="font-extrabold text-sm text-[#1c1c1c] truncate">
+                    {log.bookTitle}
+                  </h4>
+                  <p className="text-xs text-[#1c1c1c]/70 mt-1 font-medium">
+                    อ่านหน้า {log.fromPage} → {log.toPage} (<strong className="text-[#1c1c1c] font-mono">+{log.pagesRead} หน้า</strong>)
                   </p>
                 </div>
                 {log.note && (
-                  <div className="text-[10px] text-neutral-500 mt-2 italic truncate">
-                    {log.note}
+                  <div className="meta text-[10px] text-[#1c1c1c]/50 italic truncate pt-1 border-t border-[#e8e6df]">
+                    "{log.note}"
                   </div>
                 )}
               </div>
             ))}
           </div>
-        </div>
+        </section>
 
       </main>
 
-      {/* Footer */}
-      <footer className="bg-neutral-950 border-t border-neutral-900 py-6 mt-12 text-center text-xs text-neutral-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center space-x-2 font-mono text-[11px]">
-            <span className="font-bold text-neutral-300">TSUNDOKU</span>
-            <span>//</span>
-            <span>LINE MESSAGING API INTEGRATION</span>
+      {/* 4. Editorial Footer (Variation 3) */}
+      <footer className="border-t-2 border-[#1c1c1c] bg-[#fdfcf8] px-4 sm:px-8 lg:px-12 py-8 transition-colors">
+        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
+          
+          {/* Brand & Meta */}
+          <div className="space-y-1 text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start space-x-2">
+              <span className="font-black text-sm uppercase tracking-wider text-[#1c1c1c]">
+                TSUNDOKU KILLER
+              </span>
+              <span className="meta text-[#1c1c1c]/40">//</span>
+              <span className="meta text-[#1c1c1c]/70 font-semibold">
+                READING CONCIERGE PROTOCOL
+              </span>
+            </div>
+            <p className="meta text-[#1c1c1c]/60">
+              Autonomous LINE Messaging API Webhook &bull; Supabase PostgreSQL Engine &bull; Next.js 14
+            </p>
           </div>
-          <p className="text-[11px] text-neutral-500">
-            ออกแบบสำหรับนักพัฒนาเดี่ยว (Solo Developer) ด้วย Next.js/Vite + Node.js Webhook + Supabase/Firebase
-          </p>
+
+          {/* Quick Actions & Status */}
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <button
+              onClick={() => setIsArchitectureOpen(true)}
+              className="meta text-[#1c1c1c] hover:text-[#ff4d00] font-bold underline underline-offset-4 cursor-pointer"
+            >
+              [DATABASE SCHEMA & WEBHOOK SPECS]
+            </button>
+            <div className="flex items-center space-x-1.5 meta text-[#ff4d00] font-bold">
+              <span className="w-2 h-2 rounded-full bg-[#ff4d00] animate-pulse" />
+              <span>LIVE SYSTEM V2.5 PRO</span>
+            </div>
+          </div>
+
         </div>
       </footer>
 
-      {/* --- ALL MODALS --- */}
+      {/* --- ALL MODALS (Styled with Variation 3 Aesthetic) --- */}
 
       {/* 1. LINE Simulator Modal */}
       <LineSimulatorModal
@@ -347,41 +343,62 @@ export default function App() {
         }}
       />
 
-      {/* 6. Quick Manual Log Modal */}
+      {/* 6. Quick Manual Log Modal (Variation 3 Style) */}
       {isQuickLogModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-md p-6 relative">
-            <h3 className="text-sm font-bold text-white mb-1">บันทึกจำนวนหน้าที่อ่าน (Quick Log)</h3>
-            <p className="text-xs text-neutral-400 mb-4">เลือกหนังสือและระบุจำนวนหน้าที่คุณอ่านเสร็จ</p>
-
-            <div className="space-y-3 text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-[#fdfcf8] border-2 border-[#1c1c1c] shadow-[8px_8px_0px_#1c1c1c] w-full max-w-md p-6 sm:p-8 relative">
+            
+            <div className="flex items-center justify-between pb-3 border-b-2 border-[#1c1c1c] mb-4">
               <div>
-                <label className="block text-neutral-300 mb-1 font-medium">เลือกหนังสือ</label>
+                <span className="meta text-[#ff4d00] font-bold">TELEMETRY // QUICK LOG</span>
+                <h3 className="text-xl font-black text-[#1c1c1c] tracking-tight uppercase">
+                  บันทึกหน้าอ่านด่วน
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsQuickLogModalOpen(false)}
+                className="p-1 border border-[#1c1c1c] hover:bg-[#1c1c1c] hover:text-[#fdfcf8] transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#1c1c1c]/70 mb-4 font-medium">
+              เลือกหนังสือและระบุจำนวนหน้าที่คุณอ่านเสร็จเพื่อบันทึกประวัติและต่อ Streak
+            </p>
+
+            <div className="space-y-4 text-xs">
+              <div>
+                <label className="meta block text-[#1c1c1c] font-bold mb-1">
+                  เลือกหนังสือ (SELECT BOOK)
+                </label>
                 <select
                   value={selectedBookForLog}
                   onChange={(e) => setSelectedBookForLog(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none"
+                  className="w-full px-3 py-2 bg-white border border-[#1c1c1c] text-[#1c1c1c] text-xs font-medium focus:outline-none"
                 >
                   {books.filter(b => b.status !== 'completed').map(b => (
                     <option key={b.id} value={b.id}>
-                      {b.title} (อ่านแล้ว {b.currentPage}/{b.totalPages} หน้า)
+                      {b.title} ({b.currentPage}/{b.totalPages} หน้า)
                     </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-neutral-300 mb-1 font-medium">จำนวนหน้าที่อ่านเพิ่ม</label>
-                <div className="flex items-center space-x-2">
-                  {[10, 15, 20, 30].map(pages => (
+                <label className="meta block text-[#1c1c1c] font-bold mb-1">
+                  จำนวนหน้าที่อ่านเพิ่ม (PAGES READ)
+                </label>
+                <div className="grid grid-cols-4 gap-2 mb-2">
+                  {[5, 10, 15, 20].map(pages => (
                     <button
                       key={pages}
                       type="button"
                       onClick={() => setPagesToLog(pages)}
-                      className={`flex-1 py-1.5 rounded-lg border font-mono transition ${
+                      className={`py-2 text-xs font-mono font-bold border transition cursor-pointer ${
                         pagesToLog === pages
-                          ? 'bg-neutral-100 text-neutral-950 font-bold border-white'
-                          : 'bg-neutral-950 text-neutral-300 border-neutral-800'
+                          ? 'bg-[#1c1c1c] text-[#fdfcf8] border-[#1c1c1c]'
+                          : 'bg-[#f4f2ea] text-[#1c1c1c] border-[#e8e6df] hover:border-[#1c1c1c]'
                       }`}
                     >
                       +{pages}
@@ -394,15 +411,15 @@ export default function App() {
                   max="500"
                   value={pagesToLog}
                   onChange={(e) => setPagesToLog(Number(e.target.value))}
-                  className="w-full mt-2 px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white font-mono focus:outline-none"
+                  className="w-full px-3 py-2 bg-white border border-[#1c1c1c] text-[#1c1c1c] font-mono text-sm focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="mt-5 pt-3 border-t border-neutral-800 flex items-center justify-end space-x-2 text-xs">
+            <div className="mt-6 pt-4 border-t-2 border-[#1c1c1c] flex items-center justify-end space-x-3">
               <button
                 onClick={() => setIsQuickLogModalOpen(false)}
-                className="px-3 py-1.5 text-neutral-400 hover:text-white"
+                className="px-4 py-2 border border-[#1c1c1c] text-xs font-bold uppercase hover:bg-[#f4f2ea] transition cursor-pointer"
               >
                 ยกเลิก
               </button>
@@ -411,15 +428,16 @@ export default function App() {
                   const targetBook = books.find(b => b.id === selectedBookForLog);
                   if (targetBook) {
                     handleQuickLogPages(targetBook, pagesToLog);
-                    confetti({ particleCount: 50, spread: 60 });
+                    confetti({ particleCount: 70, spread: 60 });
                   }
                   setIsQuickLogModalOpen(false);
                 }}
-                className="px-4 py-2 bg-white text-neutral-950 font-semibold rounded-xl hover:bg-neutral-200 transition"
+                className="bg-[#1c1c1c] hover:bg-[#ff4d00] text-[#fdfcf8] px-5 py-2 text-xs font-bold uppercase tracking-wider transition shadow-sm cursor-pointer"
               >
                 บันทึกความคืบหน้า
               </button>
             </div>
+
           </div>
         </div>
       )}
