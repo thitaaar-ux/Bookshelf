@@ -251,63 +251,64 @@ export const LineSimulatorModal: React.FC<LineSimulatorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs">
-      <div className="bg-[#fdfcf8] border-2 border-[#1c1c1c] shadow-[8px_8px_0px_#1c1c1c] w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md">
+      <div className="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
         
-        {/* Modal Top Header - Variation 3 */}
-        <div className="px-5 py-3.5 bg-[#f4f2ea] border-b-2 border-[#1c1c1c] flex items-center justify-between">
+        {/* Modal Top Header */}
+        <div className="px-5 py-3.5 bg-neutral-950 border-b border-neutral-800 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded bg-[#1c1c1c] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-[#06C755] flex items-center justify-center text-white font-bold text-sm shadow">
               LINE
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="meta text-[#ff4d00] font-bold">● PROTOCOL SIMULATOR</span>
-                <span className="meta text-[#1c1c1c]/40">•</span>
-                <span className="meta text-[#1c1c1c]">WEBHOOK V2.5</span>
+                <h3 className="text-sm font-bold text-white">LINE Messaging API Simulator</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
+                  LIVE SIMULATION
+                </span>
               </div>
-              <h3 className="text-sm font-black uppercase tracking-tight text-[#1c1c1c]">
-                LINE Messaging API & Quick Reply Simulator
-              </h3>
+              <p className="text-[11px] text-neutral-400">
+                จำลองการแจ้งเตือนและการตอบกลับด้วย Quick Reply แบบสองทาง (Interactive Webhook)
+              </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
             {/* View switcher tabs */}
-            <div className="nav-pills hidden sm:flex items-center bg-white p-1 rounded-full border border-[#e8e6df] text-xs">
+            <div className="hidden sm:flex items-center bg-neutral-900 p-1 rounded-lg border border-neutral-800 text-xs">
               <button
                 onClick={() => setActiveTab('simulator')}
-                className={`px-3 py-1 rounded-full transition cursor-pointer ${
-                  activeTab === 'simulator' ? 'bg-[#1c1c1c] text-white font-bold' : 'text-[#1c1c1c]/60 hover:text-[#1c1c1c]'
+                className={`px-3 py-1 rounded-md transition ${
+                  activeTab === 'simulator' ? 'bg-neutral-800 text-white font-medium' : 'text-neutral-400 hover:text-white'
                 }`}
               >
                 📱 หน้าจอแชท LINE
               </button>
               <button
                 onClick={() => setActiveTab('webhook_inspector')}
-                className={`px-3 py-1 rounded-full transition flex items-center space-x-1 cursor-pointer ${
-                  activeTab === 'webhook_inspector' ? 'bg-[#1c1c1c] text-white font-bold' : 'text-[#1c1c1c]/60 hover:text-[#1c1c1c]'
+                className={`px-3 py-1 rounded-md transition flex items-center space-x-1 ${
+                  activeTab === 'webhook_inspector' ? 'bg-neutral-800 text-white font-medium' : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                <Terminal className="w-3 h-3 text-[#ff4d00]" />
+                <Terminal className="w-3 h-3 text-sky-400" />
                 <span>Payload & Logs</span>
               </button>
               <button
                 onClick={() => setActiveTab('line_setup')}
-                className={`px-3 py-1 rounded-full transition flex items-center space-x-1 cursor-pointer ${
-                  activeTab === 'line_setup' ? 'bg-[#1c1c1c] text-white font-bold' : 'text-[#1c1c1c]/60 hover:text-[#1c1c1c]'
+                className={`px-3 py-1 rounded-md transition flex items-center space-x-1 ${
+                  activeTab === 'line_setup' ? 'bg-neutral-800 text-white font-medium' : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                <Shield className="w-3 h-3 text-[#1c1c1c]" />
+                <Shield className="w-3 h-3 text-emerald-400" />
                 <span>การต่อของจริง</span>
               </button>
             </div>
 
             <button
               onClick={onClose}
-              className="p-1.5 border border-[#1c1c1c] hover:bg-[#1c1c1c] hover:text-[#fdfcf8] transition cursor-pointer"
+              className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>

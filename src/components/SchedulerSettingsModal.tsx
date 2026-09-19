@@ -68,95 +68,87 @@ export const SchedulerSettingsModal: React.FC<SchedulerSettingsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-[#fdfcf8] border-2 border-[#1c1c1c] shadow-[8px_8px_0px_#1c1c1c] w-full max-w-lg p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+      <div className="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto shadow-2xl">
         
-        {/* Header - Variation 3 */}
-        <div className="flex items-center justify-between pb-4 border-b-2 border-[#1c1c1c] mb-6">
+        {/* Header */}
+        <div className="flex items-center justify-between pb-4 border-b border-neutral-800 mb-5">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded bg-[#1c1c1c] flex items-center justify-center text-white shadow-sm">
-              <Calendar className="w-4 h-4 text-[#ff4d00]" />
+            <div className="w-8 h-8 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white">
+              <Calendar className="w-4 h-4 text-emerald-400" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="meta text-[#ff4d00] font-bold">● PROTOCOL CRON</span>
-                <span className="meta text-[#1c1c1c]/40">•</span>
-                <span className="meta text-[#1c1c1c]">LINE SCHEDULER</span>
-              </div>
-              <h3 className="text-base font-black uppercase tracking-tight text-[#1c1c1c]">
-                Smart Scheduler & Binding
-              </h3>
+              <h3 className="text-sm font-bold text-white">Smart Scheduler & LINE Binding</h3>
+              <p className="text-xs text-neutral-400">กำหนดเป้าหมายการอ่านและวัน-เวลาแจ้งเตือน</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 border border-[#1c1c1c] hover:bg-[#1c1c1c] hover:text-[#fdfcf8] transition cursor-pointer"
+            className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSave} className="space-y-6 text-xs">
+        <form onSubmit={handleSave} className="space-y-5 text-xs">
           
           {/* LINE Binding Section */}
-          <div className="p-4 bg-[#f4f2ea] border border-[#1c1c1c] space-y-3">
+          <div className="p-4 rounded-xl bg-neutral-950 border border-neutral-800 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Smartphone className="w-4 h-4 text-[#1c1c1c]" />
-                <span className="meta font-extrabold text-[#1c1c1c]">LINE ACCOUNT BINDING</span>
+                <Smartphone className="w-4 h-4 text-[#06C755]" />
+                <span className="font-semibold text-white">LINE Account Linkage</span>
               </div>
-              <span className={`px-2 py-0.5 text-[10px] font-mono font-bold uppercase border ${
-                lineConnected 
-                  ? 'bg-white text-[#1c1c1c] border-[#1c1c1c]' 
-                  : 'bg-[#e8e6df] text-[#1c1c1c]/60 border-[#1c1c1c]/20'
+              <span className={`px-2 py-0.5 rounded text-[10px] font-mono ${
+                lineConnected ? 'bg-emerald-950 text-emerald-400 border border-emerald-800' : 'bg-neutral-800 text-neutral-400'
               }`}>
-                {lineConnected ? '● CONNECTED' : '○ DISCONNECTED'}
+                {lineConnected ? 'CONNECTED' : 'DISCONNECTED'}
               </span>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="meta block text-[#1c1c1c] font-bold mb-1">LINE Display Name</label>
+                <label className="block text-neutral-400 mb-1">LINE Display Name</label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-white border border-[#1c1c1c] text-[#1c1c1c] font-mono text-xs focus:outline-none focus:ring-1 focus:ring-[#ff4d00]"
+                  className="w-full px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-white font-mono focus:outline-none focus:border-neutral-600"
                 />
               </div>
               <div>
-                <label className="meta block text-[#1c1c1c] font-bold mb-1">LINE User ID (Stub)</label>
+                <label className="block text-neutral-400 mb-1">LINE User ID (Stub)</label>
                 <input
                   type="text"
                   readOnly
                   value={schedule.lineUserId}
-                  className="w-full px-3 py-1.5 bg-[#e8e6df] border border-[#1c1c1c]/30 text-[#1c1c1c]/70 font-mono text-[11px] focus:outline-none"
+                  className="w-full px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded-lg text-neutral-400 font-mono text-[11px] focus:outline-none"
                 />
               </div>
             </div>
 
             <div className="flex items-center justify-between pt-1">
-              <span className="text-[11px] text-[#1c1c1c]/70 font-medium">อนุญาตให้ส่ง Push Notifications ผ่าน LINE</span>
+              <span className="text-[11px] text-neutral-400">อนุญาตให้ส่ง Push Notifications ผ่าน LINE</span>
               <button
                 type="button"
                 onClick={() => setLineConnected(!lineConnected)}
-                className={`w-10 h-5 border border-[#1c1c1c] transition relative cursor-pointer ${lineConnected ? 'bg-[#1c1c1c]' : 'bg-[#e8e6df]'}`}
+                className={`w-10 h-5 rounded-full transition relative ${lineConnected ? 'bg-emerald-600' : 'bg-neutral-800'}`}
               >
-                <div className={`w-3.5 h-3.5 bg-white absolute top-0.5 transition ${lineConnected ? 'left-5.5' : 'left-0.5'}`} />
+                <div className={`w-4 h-4 rounded-full bg-white absolute top-0.5 transition ${lineConnected ? 'left-5.5' : 'left-0.5'}`} />
               </button>
             </div>
           </div>
 
           {/* Target Book */}
           <div>
-            <label className="meta block font-bold text-[#1c1c1c] mb-1.5">
-              หนังสือเล่มหลักที่ผูกกับระบบแจ้งเตือน (ACTIVE BOOK)
+            <label className="block font-medium text-neutral-300 mb-1.5">
+              หนังสือเล่มหลักที่ผูกกับระบบแจ้งเตือน (Active Book)
             </label>
             <select
               value={activeBookId}
               onChange={(e) => setActiveBookId(e.target.value)}
-              className="w-full px-3 py-2 bg-white border border-[#1c1c1c] text-[#1c1c1c] text-xs font-medium focus:outline-none focus:ring-1 focus:ring-[#ff4d00]"
+              className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:border-neutral-600"
             >
               {books.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -168,8 +160,8 @@ export const SchedulerSettingsModal: React.FC<SchedulerSettingsModalProps> = ({
 
           {/* Days selector */}
           <div>
-            <label className="meta block font-bold text-[#1c1c1c] mb-2">
-              เลือกวันแจ้งเตือนประจำสัปดาห์ (REMINDER DAYS)
+            <label className="block font-medium text-neutral-300 mb-2">
+              เลือกวันแจ้งเตือนประจำสัปดาห์ (Reminder Days)
             </label>
             <div className="grid grid-cols-7 gap-1.5">
               {daysList.map((day) => {
@@ -179,10 +171,10 @@ export const SchedulerSettingsModal: React.FC<SchedulerSettingsModalProps> = ({
                     key={day.id}
                     type="button"
                     onClick={() => toggleDay(day.id)}
-                    className={`py-2 text-center transition cursor-pointer border ${
+                    className={`py-2 rounded-xl text-center font-medium transition cursor-pointer ${
                       isSelected
-                        ? 'bg-[#1c1c1c] text-[#fdfcf8] border-[#1c1c1c] font-bold shadow-xs'
-                        : 'bg-[#f4f2ea] text-[#1c1c1c]/80 border-[#e8e6df] hover:border-[#1c1c1c]'
+                        ? 'bg-neutral-100 text-neutral-950 font-bold shadow-sm'
+                        : 'bg-neutral-950 text-neutral-400 border border-neutral-800 hover:border-neutral-700'
                     }`}
                   >
                     <div className="text-[10px] uppercase font-mono">{day.short}</div>
@@ -194,35 +186,35 @@ export const SchedulerSettingsModal: React.FC<SchedulerSettingsModalProps> = ({
           </div>
 
           {/* Time & Daily Page Target */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="meta block font-bold text-[#1c1c1c] mb-1">
+              <label className="block font-medium text-neutral-300 mb-1">
                 เวลาส่งแจ้งเตือนใน LINE
               </label>
               <div className="relative">
-                <Clock className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#1c1c1c]/60" />
+                <Clock className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="time"
                   value={reminderTime}
                   onChange={(e) => setReminderTime(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-[#1c1c1c] text-[#1c1c1c] font-mono text-sm focus:outline-none focus:ring-1 focus:ring-[#ff4d00]"
+                  className="w-full pl-9 pr-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white font-mono focus:outline-none focus:border-neutral-600"
                 />
               </div>
             </div>
 
             <div>
-              <label className="meta block font-bold text-[#1c1c1c] mb-1">
+              <label className="block font-medium text-neutral-300 mb-1">
                 เป้าหมายการอ่าน (หน้า/วัน)
               </label>
               <div className="relative">
-                <Target className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#1c1c1c]/60" />
+                <Target className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="number"
                   min="5"
                   max="200"
                   value={targetPages}
                   onChange={(e) => setTargetPages(Number(e.target.value))}
-                  className="w-full pl-9 pr-3 py-2 bg-white border border-[#1c1c1c] text-[#1c1c1c] font-mono text-sm focus:outline-none focus:ring-1 focus:ring-[#ff4d00]"
+                  className="w-full pl-9 pr-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white font-mono focus:outline-none focus:border-neutral-600"
                 />
               </div>
             </div>
@@ -230,8 +222,8 @@ export const SchedulerSettingsModal: React.FC<SchedulerSettingsModalProps> = ({
 
           {/* Snooze duration */}
           <div>
-            <label className="meta block font-bold text-[#1c1c1c] mb-2">
-              ระยะเวลาเลื่อนการแจ้งเตือน (SNOOZE INTERVAL)
+            <label className="block font-medium text-neutral-300 mb-1.5">
+              ระยะเวลาเลื่อนการแจ้งเตือน (Snooze Interval) เมื่อกดปุ่ม Quick Reply
             </label>
             <div className="grid grid-cols-4 gap-2">
               {[15, 30, 45, 60].map((mins) => (
@@ -239,10 +231,10 @@ export const SchedulerSettingsModal: React.FC<SchedulerSettingsModalProps> = ({
                   key={mins}
                   type="button"
                   onClick={() => setSnoozeMinutes(mins)}
-                  className={`py-2 border text-center font-mono text-xs transition cursor-pointer ${
+                  className={`py-1.5 rounded-lg border text-center font-mono transition cursor-pointer ${
                     snoozeMinutes === mins
-                      ? 'bg-[#1c1c1c] text-[#fdfcf8] border-[#1c1c1c] font-bold'
-                      : 'bg-[#f4f2ea] border-[#e8e6df] text-[#1c1c1c]/80 hover:border-[#1c1c1c]'
+                      ? 'bg-neutral-800 border-neutral-600 text-white'
+                      : 'bg-neutral-950 border-neutral-800 text-neutral-400'
                   }`}
                 >
                   {mins} นาที
@@ -252,21 +244,21 @@ export const SchedulerSettingsModal: React.FC<SchedulerSettingsModalProps> = ({
           </div>
 
           {/* Save button */}
-          <div className="pt-4 border-t-2 border-[#1c1c1c] flex items-center justify-end space-x-3">
+          <div className="pt-4 border-t border-neutral-800 flex items-center justify-end space-x-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-[#1c1c1c] text-xs font-bold uppercase hover:bg-[#f4f2ea] transition cursor-pointer"
+              className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white transition cursor-pointer"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-[#1c1c1c] hover:bg-[#ff4d00] text-[#fdfcf8] font-bold uppercase text-xs tracking-wider transition shadow-sm flex items-center space-x-2 cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-white text-neutral-950 font-semibold hover:bg-neutral-200 transition shadow-sm flex items-center space-x-1.5 cursor-pointer"
             >
               {savedSuccess ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-white" />
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
                   <span>บันทึกสำเร็จ!</span>
                 </>
               ) : (

@@ -125,37 +125,38 @@ export const ConciergeChatModal: React.FC<ConciergeChatModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs">
-      <div className="bg-[#fdfcf8] border-2 border-[#1c1c1c] shadow-[8px_8px_0px_#1c1c1c] w-full max-w-2xl h-[85vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md">
+      <div className="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-2xl h-[85vh] flex flex-col overflow-hidden shadow-2xl">
         
-        {/* Header - Variation 3 */}
-        <div className="px-5 py-4 bg-[#f4f2ea] border-b-2 border-[#1c1c1c] flex items-center justify-between">
+        {/* Header */}
+        <div className="px-5 py-4 bg-neutral-950 border-b border-neutral-800 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded bg-[#1c1c1c] flex items-center justify-center text-white shadow-sm">
-              <Sparkles className="w-4 h-4 text-[#ff4d00]" />
+            <div className="w-9 h-9 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-300 shadow">
+              <Sparkles className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="meta text-[#ff4d00] font-bold">● BUTLER CONSULTANT</span>
-                <span className="meta text-[#1c1c1c]/40">•</span>
-                <span className="meta text-[#1c1c1c]">AI CONCIERGE</span>
+                <h3 className="text-sm font-bold text-white">The System Concierge</h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-300 border border-neutral-700">
+                  VIRTUAL ASSISTANT
+                </span>
               </div>
-              <h3 className="text-sm font-black uppercase tracking-tight text-[#1c1c1c]">
-                The Reading Concierge
-              </h3>
+              <p className="text-[11px] text-neutral-400">
+                ผู้ช่วยสนทนาเพื่อวางแผนอ่านหนังสือและติดตามผลอย่างเป็นมิตร ไร้ความกดดัน
+              </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 border border-[#1c1c1c] hover:bg-[#1c1c1c] hover:text-[#fdfcf8] transition cursor-pointer"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Chat Feed */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#fdfcf8]">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-neutral-950/60">
           {messages.map((msg) => (
             <div
               key={msg.id}
@@ -163,64 +164,64 @@ export const ConciergeChatModal: React.FC<ConciergeChatModalProps> = ({
             >
               <div className="flex items-start space-x-2.5 max-w-[88%]">
                 {msg.sender === 'concierge' && (
-                  <div className="w-7 h-7 bg-[#1c1c1c] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                    <Bot className="w-4 h-4 text-[#ff4d00]" />
+                  <div className="w-7 h-7 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-300 shrink-0 mt-0.5">
+                    <Bot className="w-4 h-4" />
                   </div>
                 )}
 
                 <div
-                  className={`p-4 text-xs sm:text-sm leading-relaxed whitespace-pre-line ${
+                  className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed whitespace-pre-line ${
                     msg.sender === 'user'
-                      ? 'bg-[#1c1c1c] text-[#fdfcf8] font-medium'
-                      : 'bg-[#f4f2ea] text-[#1c1c1c] border border-[#e8e6df]'
+                      ? 'bg-neutral-100 text-neutral-950 font-medium rounded-tr-none'
+                      : 'bg-neutral-900 text-neutral-200 border border-neutral-800 rounded-tl-none'
                   }`}
                 >
                   {msg.text}
 
                   {/* Goal proposal card inside message */}
                   {msg.actionableGoal && (
-                    <div className="mt-3 p-3 bg-white border border-[#1c1c1c] shadow-[2px_2px_0px_#1c1c1c] text-xs space-y-2">
-                      <div className="flex items-center justify-between pb-1 border-b border-[#e8e6df]">
-                        <span className="meta text-[#ff4d00] font-bold">
-                          🎯 GOAL RECOGNITION
+                    <div className="mt-3 p-3 rounded-xl bg-neutral-950 border border-emerald-500/40 text-xs">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-emerald-400">
+                          🎯 สรุปเป้าหมายที่ตรวจพบ
                         </span>
-                        <span className="font-mono text-xs text-[#1c1c1c]">
+                        <span className="text-[10px] font-mono text-neutral-400">
                           {msg.actionableGoal.time} น.
                         </span>
                       </div>
-                      <p className="text-[#1c1c1c] font-medium">
-                        อ่านวันละ <strong className="text-[#ff4d00] font-bold">{msg.actionableGoal.pages} หน้า</strong> เวลา {msg.actionableGoal.time} น.
+                      <p className="text-neutral-300 mb-2">
+                        อ่านวันละ <strong className="text-white">{msg.actionableGoal.pages} หน้า</strong> เวลา {msg.actionableGoal.time} น.
                       </p>
                       <button
                         onClick={() => {
                           onApplyGoalRecommendation(msg.actionableGoal!.pages, msg.actionableGoal!.time);
                           alert(`ตั้งค่าเป้าหมายวันละ ${msg.actionableGoal!.pages} หน้า เรียบร้อยแล้ว!`);
                         }}
-                        className="w-full py-1.5 px-3 bg-[#1c1c1c] hover:bg-[#ff4d00] text-white font-bold uppercase text-[11px] flex items-center justify-center space-x-1.5 transition cursor-pointer"
+                        className="w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium text-xs flex items-center justify-center space-x-1.5 transition"
                       >
                         <Check className="w-3.5 h-3.5" />
-                        <span>ปรับใช้เป้าหมายนี้กับระบบแจ้งเตือน LINE</span>
+                        <span>ปรับใช้เป้าหมายนี้กับระบบแจ้งเตือน LINE ทันที</span>
                       </button>
                     </div>
                   )}
                 </div>
 
                 {msg.sender === 'user' && (
-                  <div className="w-7 h-7 bg-[#f4f2ea] border border-[#1c1c1c] flex items-center justify-center text-[#1c1c1c] shrink-0 mt-0.5">
+                  <div className="w-7 h-7 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-300 shrink-0 mt-0.5">
                     <User className="w-4 h-4" />
                   </div>
                 )}
               </div>
-              <span className="meta text-[10px] text-[#1c1c1c]/40 font-mono mt-1 px-1">
+              <span className="text-[10px] text-neutral-500 font-mono mt-1 px-1">
                 {msg.timestamp}
               </span>
             </div>
           ))}
 
           {isLoading && (
-            <div className="flex items-center space-x-2 text-xs text-[#1c1c1c]/60 p-2">
-              <div className="w-2 h-2 rounded-full bg-[#ff4d00] animate-pulse"></div>
-              <span className="font-mono meta">Concierge กำลังวิเคราะห์...</span>
+            <div className="flex items-center space-x-2 text-xs text-neutral-400 p-2">
+              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></div>
+              <span className="font-mono">Concierge กำลังวิเคราะห์...</span>
             </div>
           )}
 
@@ -228,12 +229,12 @@ export const ConciergeChatModal: React.FC<ConciergeChatModalProps> = ({
         </div>
 
         {/* Quick Prompts */}
-        <div className="px-4 py-2.5 bg-[#f4f2ea] border-t border-[#e8e6df] flex items-center space-x-2 overflow-x-auto">
+        <div className="px-4 py-2 bg-neutral-900/90 border-t border-neutral-800 flex items-center space-x-2 overflow-x-auto">
           {quickPrompts.map((prompt, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(prompt)}
-              className="px-3 py-1 rounded-full bg-white hover:bg-[#1c1c1c] hover:text-white text-[#1c1c1c] text-[11px] whitespace-nowrap border border-[#e8e6df] transition cursor-pointer font-medium"
+              className="px-2.5 py-1 rounded-full bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-[11px] whitespace-nowrap border border-neutral-700 transition cursor-pointer"
             >
               {prompt}
             </button>
@@ -246,19 +247,19 @@ export const ConciergeChatModal: React.FC<ConciergeChatModalProps> = ({
             e.preventDefault();
             handleSend();
           }}
-          className="p-3 sm:p-4 bg-[#f4f2ea] border-t-2 border-[#1c1c1c] flex items-center space-x-2"
+          className="p-3 bg-neutral-950 border-t border-neutral-800 flex items-center space-x-2"
         >
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="พิมพ์บอกความตั้งใจ เช่น 'อยากอ่าน 20 หน้าตอนสองทุ่ม'..."
-            className="flex-1 px-4 py-2 bg-white border border-[#1c1c1c] text-xs sm:text-sm text-[#1c1c1c] focus:outline-none focus:ring-2 focus:ring-[#ff4d00] transition"
+            className="flex-1 px-4 py-2 bg-neutral-900 border border-neutral-800 rounded-xl text-xs sm:text-sm text-white focus:outline-none focus:border-neutral-600 transition"
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="px-5 py-2 bg-[#1c1c1c] hover:bg-[#ff4d00] disabled:opacity-40 text-[#fdfcf8] font-bold uppercase text-xs transition flex items-center space-x-1.5 cursor-pointer shadow-sm"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-neutral-200 disabled:opacity-40 text-neutral-950 font-semibold text-xs transition flex items-center space-x-1.5 cursor-pointer"
           >
             <span>ส่ง</span>
             <Send className="w-3.5 h-3.5" />
