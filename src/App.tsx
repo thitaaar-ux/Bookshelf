@@ -287,7 +287,7 @@ export default function App() {
       <footer className="bg-neutral-950 border-t border-neutral-900 py-6 mt-12 text-center text-xs text-neutral-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center space-x-2 font-mono text-[11px]">
-            <span className="font-bold text-neutral-300">TSUNDOKU KILLER</span>
+            <span className="font-bold text-neutral-300">TSUNDOKU</span>
             <span>//</span>
             <span>LINE MESSAGING API INTEGRATION</span>
           </div>

@@ -1,8 +1,8 @@
 import React from 'react';
-import { BookOpen, Bell, Award, Cpu, MessageSquare, Calendar, Sparkles } from 'lucide-react';
+import { BookOpen, Bell, Award, MessageSquare, Calendar, Sparkles } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab: 'dashboard' | 'library' | 'architecture';
+  activeTab?: 'dashboard' | 'library' | 'architecture';
   setActiveTab: (tab: 'dashboard' | 'library' | 'architecture') => void;
   onOpenLineSimulator: () => void;
   onOpenConcierge: () => void;
@@ -34,47 +34,11 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-700 flex items-center justify-center text-white shadow-inner">
               <BookOpen className="w-5 h-5 text-neutral-100" />
             </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-extrabold tracking-wider text-base uppercase text-neutral-100">
-                  TSUNDOKU <span className="text-neutral-500">//</span> KILLER
-                </span>
-                <span className="hidden sm:inline-block text-[10px] uppercase font-mono tracking-widest px-2 py-0.5 rounded-full bg-neutral-900 border border-neutral-700 text-neutral-400">
-                  v2.5 PRO
-                </span>
-              </div>
-              <p className="text-[11px] text-neutral-400 hidden md:block">
-                ระบบจัดการการอ่านและทลายกองดองผ่าน LINE
-              </p>
-            </div>
+            <span className="font-extrabold tracking-wider text-base uppercase text-neutral-100 whitespace-nowrap">
+              TSUNDOKU
+            </span>
           </div>
 
-          {/* Primary View Switcher */}
-          <nav className="flex items-center space-x-1 bg-neutral-900/90 p-1 rounded-xl border border-neutral-800">
-            <button
-              id="nav-btn-dashboard"
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
-                activeTab === 'dashboard'
-                  ? 'bg-neutral-800 text-white shadow-sm'
-                  : 'text-neutral-400 hover:text-neutral-200'
-              }`}
-            >
-              แดชบอร์ด & กองดอง
-            </button>
-            <button
-              id="nav-btn-architecture"
-              onClick={() => setActiveTab('architecture')}
-              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all flex items-center space-x-1.5 ${
-                activeTab === 'architecture'
-                  ? 'bg-neutral-800 text-white shadow-sm'
-                  : 'text-neutral-400 hover:text-neutral-200'
-              }`}
-            >
-              <Cpu className="w-3.5 h-3.5 text-neutral-300" />
-              <span>สถาปัตยกรรม & DB Schema</span>
-            </button>
-          </nav>
 
           {/* Right Action Bar */}
           <div className="flex items-center space-x-2">
