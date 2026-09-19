@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Bell, Award, MessageSquare, Calendar, Sparkles } from 'lucide-react';
+import { BookOpen, Bell, Award, MessageSquare, Calendar, Sparkles, ShieldCheck } from 'lucide-react';
 
 interface HeaderProps {
   activeTab?: 'dashboard' | 'library' | 'architecture';
@@ -8,6 +8,7 @@ interface HeaderProps {
   onOpenConcierge: () => void;
   onOpenScheduler: () => void;
   onOpenBadges: () => void;
+  onOpenBackoffice?: () => void;
   lineConnected: boolean;
   clearanceRate: number;
   streakCount: number;
@@ -20,6 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenConcierge,
   onOpenScheduler,
   onOpenBadges,
+  onOpenBackoffice,
   lineConnected,
   clearanceRate,
   streakCount
@@ -104,6 +106,19 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Award className="w-4 h-4" />
             </button>
+
+            {/* Admin Backoffice Entry Button */}
+            {/* {onOpenBackoffice && (
+              <button
+                id="header-btn-backoffice"
+                onClick={onOpenBackoffice}
+                className="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 hover:border-sky-500/50 hover:bg-neutral-800 text-sky-400 text-xs transition cursor-pointer"
+                title="ระบบจัดการหลังบ้าน (Admin Backoffice)"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="hidden lg:inline text-[11px] font-medium">Backoffice</span>
+              </button>
+            )} */}
           </div>
 
         </div>

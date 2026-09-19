@@ -9,7 +9,6 @@
   }
 }
 
-/* Custom sleek scrollbar for luxury monochrome theme */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -27,4 +26,3 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #404040;
 }
-
