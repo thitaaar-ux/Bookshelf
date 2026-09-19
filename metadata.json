@@ -1,0 +1,6 @@
+{
+  "name": "Tsundoku Killer: LINE Reading Concierge",
+  "description": "ระบบจัดการการอ่านและทลายกองดอง (Tsundoku) พร้อมระบบแจ้งเตือนอัจฉริยะผ่าน LINE Webhook, Virtual Concierge และ Gamification ระดับพรีเมียม",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
