@@ -65,38 +65,44 @@ export const GamificationBadgesModal: React.FC<GamificationBadgesModalProps> = (
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md">
-      <div className="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-xs">
+      <div className="bg-[#fdfcf8] border-2 border-[#1c1c1c] shadow-[8px_8px_0px_#1c1c1c] w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
         
-        {/* Header */}
-        <div className="px-6 py-4 bg-neutral-950 border-b border-neutral-800 flex items-center justify-between">
+        {/* Header - Variation 3 */}
+        <div className="px-6 py-4 bg-[#f4f2ea] border-b-2 border-[#1c1c1c] flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-amber-400">
-              <Award className="w-5 h-5" />
+            <div className="w-8 h-8 rounded bg-[#1c1c1c] flex items-center justify-center text-white shadow-sm">
+              <Award className="w-4 h-4 text-[#ff4d00]" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Gamification & System Analytics</h3>
-              <p className="text-xs text-neutral-400">เหรียญตราความสำเร็จ, สถิติการอ่าน และธีมปลดล็อก</p>
+              <div className="flex items-center space-x-2">
+                <span className="meta text-[#ff4d00] font-bold">● TELEMETRY</span>
+                <span className="meta text-[#1c1c1c]/40">•</span>
+                <span className="meta text-[#1c1c1c]">BADGES & ANALYTICS</span>
+              </div>
+              <h3 className="text-sm font-black uppercase tracking-tight text-[#1c1c1c]">
+                Gamification & System Analytics
+              </h3>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <div className="flex items-center bg-neutral-900 p-1 rounded-lg border border-neutral-800 text-xs">
+            <div className="nav-pills hidden sm:flex items-center bg-white p-1 rounded-full border border-[#e8e6df] text-xs">
               <button
                 onClick={() => setActiveTab('badges')}
-                className={`px-3 py-1 rounded-md transition ${activeTab === 'badges' ? 'bg-neutral-800 text-white' : 'text-neutral-400'}`}
+                className={`px-3 py-1 rounded-full transition cursor-pointer ${activeTab === 'badges' ? 'bg-[#1c1c1c] text-white font-bold' : 'text-[#1c1c1c]/60 hover:text-[#1c1c1c]'}`}
               >
                 🏅 เหรียญตรา
               </button>
               <button
                 onClick={() => setActiveTab('stats')}
-                className={`px-3 py-1 rounded-md transition ${activeTab === 'stats' ? 'bg-neutral-800 text-white' : 'text-neutral-400'}`}
+                className={`px-3 py-1 rounded-full transition cursor-pointer ${activeTab === 'stats' ? 'bg-[#1c1c1c] text-white font-bold' : 'text-[#1c1c1c]/60 hover:text-[#1c1c1c]'}`}
               >
                 📊 สถิติรายเดือน
               </button>
               <button
                 onClick={() => setActiveTab('rewards')}
-                className={`px-3 py-1 rounded-md transition ${activeTab === 'rewards' ? 'bg-neutral-800 text-white' : 'text-neutral-400'}`}
+                className={`px-3 py-1 rounded-full transition cursor-pointer ${activeTab === 'rewards' ? 'bg-[#1c1c1c] text-white font-bold' : 'text-[#1c1c1c]/60 hover:text-[#1c1c1c]'}`}
               >
                 🎨 ปลดล็อกธีม UI
               </button>
@@ -104,38 +110,38 @@ export const GamificationBadgesModal: React.FC<GamificationBadgesModalProps> = (
 
             <button
               onClick={onClose}
-              className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
+              className="p-1.5 border border-[#1c1c1c] hover:bg-[#1c1c1c] hover:text-[#fdfcf8] transition cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Tab 1: Badges */}
         {activeTab === 'badges' && (
-          <div className="p-6 overflow-y-auto space-y-5 bg-neutral-950/60 flex-1">
+          <div className="p-6 overflow-y-auto space-y-5 bg-[#fdfcf8] flex-1">
             {/* Streak banner */}
-            <div className="p-4 rounded-xl bg-gradient-to-r from-neutral-900 to-neutral-950 border border-neutral-800 flex items-center justify-between">
+            <div className="p-4 bg-[#f4f2ea] border border-[#1c1c1c] shadow-[2px_2px_0px_#1c1c1c] flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                <div className="w-12 h-12 bg-[#1c1c1c] flex items-center justify-center text-[#ff4d00]">
                   <Flame className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-xl font-bold font-mono text-white">{streakCount} วันต่อเนื่อง</span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800 font-mono">
+                    <span className="text-xl font-black font-mono text-[#1c1c1c]">{streakCount} วันต่อเนื่อง</span>
+                    <span className="meta text-[10px] px-2 py-0.5 bg-[#ff4d00] text-white font-bold">
                       HOT STREAK
                     </span>
                   </div>
-                  <p className="text-xs text-neutral-400 mt-0.5">
+                  <p className="text-xs text-[#1c1c1c]/70 mt-0.5 font-medium">
                     อ่านอีก 23 วันเพื่อปลดล็อกเหรียญ "Habit Immortal 30 วัน"
                   </p>
                 </div>
               </div>
 
               <div className="text-right hidden sm:block">
-                <div className="text-xs text-neutral-400">ปลดล็อกแล้ว</div>
-                <div className="text-base font-mono font-bold text-white">
+                <div className="meta text-xs text-[#1c1c1c]/60">ปลดล็อกแล้ว</div>
+                <div className="text-base font-mono font-black text-[#1c1c1c]">
                   {badges.filter(b => b.unlocked).length} / {badges.length} เหรียญ
                 </div>
               </div>
@@ -146,37 +152,37 @@ export const GamificationBadgesModal: React.FC<GamificationBadgesModalProps> = (
               {badges.map((b) => (
                 <div
                   key={b.id}
-                  className={`p-4 rounded-xl border transition flex items-start space-x-3 ${
+                  className={`p-4 border transition flex items-start space-x-3 ${
                     b.unlocked
-                      ? 'bg-neutral-900/90 border-neutral-700 shadow-sm'
-                      : 'bg-neutral-950/40 border-neutral-800/80 opacity-60'
+                      ? 'bg-white border-[#1c1c1c] shadow-[2px_2px_0px_#1c1c1c]'
+                      : 'bg-[#f4f2ea] border-[#e8e6df] opacity-60'
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                    b.unlocked ? 'bg-neutral-800 border border-neutral-600 text-amber-400' : 'bg-neutral-900 text-neutral-600'
+                  <div className={`w-10 h-10 flex items-center justify-center shrink-0 border ${
+                    b.unlocked ? 'bg-[#1c1c1c] text-[#ff4d00] border-[#1c1c1c]' : 'bg-[#e8e6df] text-[#1c1c1c]/40 border-[#1c1c1c]/20'
                   }`}>
                     {b.unlocked ? <Crown className="w-5 h-5" /> : <Lock className="w-4 h-4" />}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-white truncate">{b.nameTh}</h4>
+                      <h4 className="text-xs font-black uppercase text-[#1c1c1c] truncate">{b.nameTh}</h4>
                       {b.unlocked ? (
-                        <span className="text-[10px] font-mono text-emerald-400 flex items-center space-x-0.5">
+                        <span className="meta text-[10px] font-bold text-[#ff4d00] flex items-center space-x-0.5">
                           <CheckCircle2 className="w-3 h-3" />
                           <span>ปลดล็อกแล้ว</span>
                         </span>
                       ) : (
-                        <span className="text-[10px] font-mono text-neutral-500">
+                        <span className="font-mono text-[10px] text-[#1c1c1c]/50">
                           {b.currentCount} / {b.requiredCount}
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-neutral-400 mt-1 leading-snug">
+                    <p className="text-[11px] text-[#1c1c1c]/70 mt-1 leading-snug font-medium">
                       {b.description}
                     </p>
                     {b.unlockedAt && (
-                      <span className="text-[9px] font-mono text-neutral-500 mt-1 block">
+                      <span className="meta text-[9px] text-[#1c1c1c]/50 mt-1 block">
                         ปลดล็อกเมื่อ {b.unlockedAt}
                       </span>
                     )}
@@ -189,38 +195,41 @@ export const GamificationBadgesModal: React.FC<GamificationBadgesModalProps> = (
 
         {/* Tab 2: Monthly Stats */}
         {activeTab === 'stats' && (
-          <div className="p-6 overflow-y-auto space-y-5 bg-neutral-950/60 flex-1 text-xs">
+          <div className="p-6 overflow-y-auto space-y-5 bg-[#fdfcf8] flex-1 text-xs">
             <div className="grid grid-cols-3 gap-3">
-              <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
-                <span className="text-neutral-400">หน้าที่อ่านสะสมทั้งหมด</span>
-                <div className="text-2xl font-bold font-mono text-white mt-1">
+              <div className="p-4 bg-white border border-[#1c1c1c] shadow-[2px_2px_0px_#1c1c1c]">
+                <span className="meta text-[#1c1c1c]/60 font-bold">หน้าที่อ่านสะสมทั้งหมด</span>
+                <div className="text-2xl font-black font-mono text-[#1c1c1c] mt-1">
                   {totalPages.toLocaleString()}
                 </div>
-                <span className="text-[10px] text-emerald-400">+60 หน้าในสัปดาห์นี้</span>
+                <span className="meta text-[10px] text-[#ff4d00] font-bold">+60 หน้าในสัปดาห์นี้</span>
               </div>
 
-              <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
-                <span className="text-neutral-400">หนังสือที่อ่านจบแล้ว</span>
-                <div className="text-2xl font-bold font-mono text-white mt-1">
+              <div className="p-4 bg-white border border-[#1c1c1c] shadow-[2px_2px_0px_#1c1c1c]">
+                <span className="meta text-[#1c1c1c]/60 font-bold">หนังสือที่อ่านจบแล้ว</span>
+                <div className="text-2xl font-black font-mono text-[#1c1c1c] mt-1">
                   {completedCount} เล่ม
                 </div>
-                <span className="text-[10px] text-neutral-400">จากกองดอง {books.length} เล่ม</span>
+                <span className="meta text-[10px] text-[#1c1c1c]/60 font-medium">จากกองดอง {books.length} เล่ม</span>
               </div>
 
-              <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
-                <span className="text-neutral-400">ความเร็วเฉลี่ย</span>
-                <div className="text-2xl font-bold font-mono text-white mt-1">
+              <div className="p-4 bg-white border border-[#1c1c1c] shadow-[2px_2px_0px_#1c1c1c]">
+                <span className="meta text-[#1c1c1c]/60 font-bold">ความเร็วเฉลี่ย</span>
+                <div className="text-2xl font-black font-mono text-[#1c1c1c] mt-1">
                   21.5
                 </div>
-                <span className="text-[10px] text-neutral-400">หน้า/วัน</span>
+                <span className="meta text-[10px] text-[#1c1c1c]/60 font-medium">หน้า / วัน</span>
               </div>
             </div>
 
             {/* Reading Velocity chart mockup */}
-            <div className="p-4 rounded-xl bg-neutral-900 border border-neutral-800">
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-white">ประวัติการอ่านย้อนหลัง 7 วัน</span>
-                <span className="text-[10px] font-mono text-neutral-400">เป้าหมาย 20 หน้า/วัน</span>
+            <div className="p-5 bg-white border border-[#1c1c1c] shadow-[3px_3px_0px_#1c1c1c]">
+              <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#e8e6df]">
+                <div>
+                  <span className="meta text-[#ff4d00] font-bold">VELOCITY METRICS</span>
+                  <h4 className="font-extrabold text-sm text-[#1c1c1c]">ประวัติการอ่านย้อนหลัง 7 วัน</h4>
+                </div>
+                <span className="font-mono text-xs text-[#1c1c1c]">เป้าหมาย 20 หน้า/วัน</span>
               </div>
               <div className="flex items-end justify-between h-32 pt-4 px-2">
                 {[
@@ -233,14 +242,14 @@ export const GamificationBadgesModal: React.FC<GamificationBadgesModalProps> = (
                   { day: 'อา.', pages: 25 }
                 ].map((item, idx) => (
                   <div key={idx} className="flex flex-col items-center space-y-1.5 flex-1">
-                    <span className="text-[9px] font-mono text-neutral-400">{item.pages}p</span>
-                    <div className="w-6 bg-neutral-800 rounded-t overflow-hidden flex flex-col justify-end h-20">
+                    <span className="text-[9px] font-mono font-bold text-[#1c1c1c]">{item.pages}p</span>
+                    <div className="w-6 bg-[#f4f2ea] border border-[#1c1c1c] overflow-hidden flex flex-col justify-end h-20">
                       <div
-                        className="bg-neutral-100 rounded-t w-full transition-all"
+                        className="bg-[#1c1c1c] w-full transition-all"
                         style={{ height: `${(item.pages / 30) * 100}%` }}
                       />
                     </div>
-                    <span className="text-[10px] text-neutral-500">{item.day}</span>
+                    <span className="meta text-[10px] text-[#1c1c1c] font-bold">{item.day}</span>
                   </div>
                 ))}
               </div>
@@ -250,12 +259,13 @@ export const GamificationBadgesModal: React.FC<GamificationBadgesModalProps> = (
 
         {/* Tab 3: Reward Themes */}
         {activeTab === 'rewards' && (
-          <div className="p-6 overflow-y-auto space-y-4 bg-neutral-950/60 flex-1">
+          <div className="p-6 overflow-y-auto space-y-4 bg-[#fdfcf8] flex-1">
             <div>
-              <h4 className="text-xs uppercase font-mono tracking-wider text-neutral-400">
-                Luxury Theme Unlocker
+              <span className="meta text-[#ff4d00] font-bold">PALETTE & TYPOGRAPHY</span>
+              <h4 className="text-base font-black uppercase text-[#1c1c1c]">
+                Editorial & Brutalist Themes
               </h4>
-              <p className="text-sm font-bold text-white mt-0.5">
+              <p className="text-xs text-[#1c1c1c]/70 mt-0.5 font-medium">
                 ปลดล็อกรูปลักษณ์อินเทอร์เฟซพรีเมียมเมื่ออัตราทลายกองดองสูงขึ้น
               </p>
             </div>
@@ -266,49 +276,49 @@ export const GamificationBadgesModal: React.FC<GamificationBadgesModalProps> = (
                 return (
                   <div
                     key={theme.id}
-                    className={`p-4 rounded-xl border transition flex flex-col justify-between ${
+                    className={`p-4 border transition flex flex-col justify-between ${
                       theme.isUnlocked
                         ? isCurrent
-                          ? 'bg-neutral-900 border-white ring-1 ring-white'
-                          : 'bg-neutral-900/80 border-neutral-800 hover:border-neutral-700'
-                        : 'bg-neutral-950/40 border-neutral-800/60 opacity-60'
+                          ? 'bg-white border-2 border-[#1c1c1c] shadow-[4px_4px_0px_#1c1c1c]'
+                          : 'bg-[#f4f2ea] border border-[#1c1c1c] hover:bg-white'
+                        : 'bg-[#e8e6df]/40 border border-[#1c1c1c]/20 opacity-60'
                     }`}
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
                           <span
-                            className="w-3 h-3 rounded-full border border-black"
+                            className="w-3.5 h-3.5 border border-[#1c1c1c]"
                             style={{ backgroundColor: theme.accentColor }}
                           />
-                          <span className="text-xs font-bold text-white">{theme.name}</span>
+                          <span className="text-xs font-black uppercase text-[#1c1c1c]">{theme.name}</span>
                         </div>
                         {theme.isUnlocked ? (
                           isCurrent ? (
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white text-neutral-950 font-bold">
+                            <span className="meta text-[10px] px-2 py-0.5 bg-[#1c1c1c] text-white font-bold">
                               กำลังใช้งาน
                             </span>
                           ) : (
                             <button
                               onClick={() => onSelectTheme(theme.id)}
-                              className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-800 text-neutral-200 hover:bg-neutral-700"
+                              className="meta text-[10px] px-2 py-0.5 bg-white border border-[#1c1c1c] text-[#1c1c1c] hover:bg-[#1c1c1c] hover:text-white transition cursor-pointer"
                             >
                               เลือกใช้ธีมนี้
                             </button>
                           )
                         ) : (
-                          <span className="text-[10px] font-mono text-neutral-500 flex items-center space-x-1">
+                          <span className="meta text-[10px] text-[#1c1c1c]/50 flex items-center space-x-1">
                             <Lock className="w-3 h-3" />
                             <span>{theme.unlockRequirement}</span>
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-neutral-400">{theme.description}</p>
+                      <p className="text-[11px] text-[#1c1c1c]/70 font-medium">{theme.description}</p>
                     </div>
 
-                    <div className="mt-3 pt-2 border-t border-neutral-800/80 text-[10px] text-neutral-500 flex items-center justify-between">
+                    <div className="mt-3 pt-2 border-t border-[#e8e6df] meta text-[10px] text-[#1c1c1c]/60 flex items-center justify-between">
                       <span>เงื่อนไข: {theme.unlockRequirement}</span>
-                      <span className="font-mono">{theme.isUnlocked ? 'READY' : 'LOCKED'}</span>
+                      <span className="font-mono font-bold text-[#1c1c1c]">{theme.isUnlocked ? 'READY' : 'LOCKED'}</span>
                     </div>
                   </div>
                 );
