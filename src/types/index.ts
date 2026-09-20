@@ -6,7 +6,8 @@ export interface Book {
   author: string;
   totalPages: number;
   currentPage: number;
-  coverUrl: string;
+  coverEmoji?: string;
+  coverUrl?: string;
   status: BookStatus;
   category: string;
   targetPagesPerDay: number;

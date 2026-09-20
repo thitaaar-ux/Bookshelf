@@ -41,7 +41,7 @@ export const LineSimulatorModal: React.FC<LineSimulatorModalProps> = ({
     {
       id: 'msg-2',
       sender: 'bot',
-      text: `⏰ [แจ้งเตือนเวลาอ่านประจำวัน]\n\nถึงเวลาอ่านหนังสือแล้วครับ! 📖\nเล่มเป้าหมาย: "${activeBook?.title || 'Atomic Habits'}"\nเป้าหมายคืนนี้: ${schedule.targetPagesPerDay} หน้า (หน้า ${(activeBook?.currentPage || 184) + 1} - ${(activeBook?.currentPage || 184) + schedule.targetPagesPerDay})\nStreak ปัจจุบัน: 🔥 7 วันต่อเนื่อง\n\nพร้อมแล้วเลือก Action ได้เลยครับ:`,
+      text: `⏰ [แจ้งเตือนเวลาอ่านประจำวัน]\n\nถึงเวลาอ่านหนังสือแล้วครับ! 📖\nเล่มเป้าหมาย: "${activeBook?.coverEmoji ? activeBook.coverEmoji + ' ' : ''}${activeBook?.title || 'Atomic Habits'}"\nเป้าหมายคืนนี้: ${schedule.targetPagesPerDay} หน้า (หน้า ${(activeBook?.currentPage || 184) + 1} - ${(activeBook?.currentPage || 184) + schedule.targetPagesPerDay})\nStreak ปัจจุบัน: 🔥 7 วันต่อเนื่อง\n\nพร้อมแล้วเลือก Action ได้เลยครับ:`,
       timestamp: '20:00',
       quickReplies: [
         { label: '📖 เริ่มอ่านเลย!', action: 'start_reading', data: 'start_reading' },
@@ -340,7 +340,7 @@ export const LineSimulatorModal: React.FC<LineSimulatorModalProps> = ({
                       </div>
                       <div>
                         <div className="flex items-center space-x-1">
-                          <span className="font-semibold text-xs text-white">Tsundoku Concierge</span>
+                          <span className="font-semibold text-xs text-white">Tsundoku Bot</span>
                           <span className="w-3 h-3 rounded-full bg-[#06C755] text-[8px] flex items-center justify-center text-white">✓</span>
                         </div>
                         <span className="text-[9px] text-emerald-400 font-mono">Official Account</span>

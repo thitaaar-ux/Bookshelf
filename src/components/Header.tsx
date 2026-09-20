@@ -1,13 +1,11 @@
 import React from 'react';
-import { BookOpen, Bell, Award, MessageSquare, Calendar, Sparkles, ShieldCheck } from 'lucide-react';
+import { BookOpen, Bell, MessageSquare, Calendar, ShieldCheck } from 'lucide-react';
 
 interface HeaderProps {
   activeTab?: 'dashboard' | 'library' | 'architecture';
   setActiveTab: (tab: 'dashboard' | 'library' | 'architecture') => void;
   onOpenLineSimulator: () => void;
-  onOpenConcierge: () => void;
   onOpenScheduler: () => void;
-  onOpenBadges: () => void;
   onOpenBackoffice?: () => void;
   lineConnected: boolean;
   clearanceRate: number;
@@ -18,9 +16,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   onOpenLineSimulator,
-  onOpenConcierge,
   onOpenScheduler,
-  onOpenBadges,
   onOpenBackoffice,
   lineConnected,
   clearanceRate,
@@ -41,19 +37,17 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
 
-
           {/* Right Action Bar */}
           <div className="flex items-center space-x-2">
             {/* Streak & Clearance Mini indicators */}
-            <button
-              id="header-streak-badge"
-              onClick={onOpenBadges}
-              className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-xs text-neutral-300 transition"
-              title="สถิติ Streak และเหรียญตรา"
+            <div
+              id="header-streak-indicator"
+              className="hidden lg:flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-neutral-900 border border-neutral-800 text-xs text-neutral-300"
+              title="สถิติ Streak การอ่านต่อเนื่อง"
             >
               <span className="text-amber-400">🔥</span>
               <span className="font-mono font-semibold">{streakCount} วัน</span>
-            </button>
+            </div>
 
             <button
               id="header-clearance-badge"
@@ -76,17 +70,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="sm:hidden">LINE</span>
             </button>
 
-            {/* Virtual Concierge Button */}
-            <button
-              id="header-btn-concierge"
-              onClick={onOpenConcierge}
-              className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 hover:bg-neutral-800 text-neutral-200 text-xs transition cursor-pointer"
-              title="คุยกับ Virtual Assistant Concierge"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
-              <span className="hidden sm:inline">Concierge AI</span>
-            </button>
-
             {/* Scheduler button */}
             <button
               id="header-btn-scheduler"
@@ -96,29 +79,6 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Calendar className="w-4 h-4" />
             </button>
-
-            {/* Badges / Rewards */}
-            <button
-              id="header-btn-badges"
-              onClick={onOpenBadges}
-              className="p-1.5 rounded-lg bg-neutral-900 border border-neutral-800 hover:bg-neutral-800 text-neutral-300 transition cursor-pointer"
-              title="เหรียญรางวัลและความสำเร็จ"
-            >
-              <Award className="w-4 h-4" />
-            </button>
-
-            {/* Admin Backoffice Entry Button */}
-            {/* {onOpenBackoffice && (
-              <button
-                id="header-btn-backoffice"
-                onClick={onOpenBackoffice}
-                className="flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-neutral-800 hover:border-sky-500/50 hover:bg-neutral-800 text-sky-400 text-xs transition cursor-pointer"
-                title="ระบบจัดการหลังบ้าน (Admin Backoffice)"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span className="hidden lg:inline text-[11px] font-medium">Backoffice</span>
-              </button>
-            )} */}
           </div>
 
         </div>

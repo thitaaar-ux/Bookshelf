@@ -27,7 +27,9 @@ export const AdminBooksTab: React.FC<AdminBooksTabProps> = ({
   const [newAuthor, setNewAuthor] = useState('');
   const [newTotalPages, setNewTotalPages] = useState(250);
   const [newCategory, setNewCategory] = useState('จิตวิทยา & พัฒนาตนเอง');
-  const [newCoverUrl, setNewCoverUrl] = useState('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80');
+  const [newCoverEmoji, setNewCoverEmoji] = useState('📖');
+
+  const bookEmojiPresets = ['📖', '📚', '📕', '📗', '📘', '📙', '📓', '📔', '⚡', '🧠', '💡', '🎯', '🚀', '☕'];
 
   const filteredBooks = books.filter(b => {
     const matchesSearch = b.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,7 +48,8 @@ export const AdminBooksTab: React.FC<AdminBooksTabProps> = ({
       author: newAuthor || 'ไม่ระบุผู้แต่ง',
       totalPages: Number(newTotalPages),
       currentPage: 0,
-      coverUrl: newCoverUrl,
+      coverEmoji: newCoverEmoji,
+      coverUrl: '',
       status: 'backlog',
       category: newCategory,
       targetPagesPerDay: 20,
@@ -56,6 +59,7 @@ export const AdminBooksTab: React.FC<AdminBooksTabProps> = ({
 
     setNewTitle('');
     setNewAuthor('');
+    setNewCoverEmoji('📖');
     setIsAddModalOpen(false);
   };
 
@@ -135,11 +139,9 @@ export const AdminBooksTab: React.FC<AdminBooksTabProps> = ({
                   <tr key={book.id} className="hover:bg-neutral-850/40 transition">
                     <td className="py-3.5 px-4">
                       <div className="flex items-center space-x-3">
-                        <img 
-                          src={book.coverUrl} 
-                          alt={book.title} 
-                          className="w-10 h-14 object-cover rounded-md border border-neutral-700 shadow-sm flex-shrink-0"
-                        />
+                        <div className="w-10 h-12 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center flex-shrink-0 text-2xl select-none shadow-sm">
+                          {book.coverEmoji || '📖'}
+                        </div>
                         <div>
                           <h4 className="font-semibold text-white max-w-[240px] truncate">{book.title}</h4>
                           <p className="text-[11px] text-neutral-400 mt-0.5">{book.author}</p>
@@ -288,13 +290,23 @@ export const AdminBooksTab: React.FC<AdminBooksTabProps> = ({
               </div>
 
               <div>
-                <label className="block text-neutral-300 mb-1 font-medium">URL ภาพหน้าปก (Cover Image URL)</label>
-                <input
-                  type="url"
-                  value={newCoverUrl}
-                  onChange={(e) => setNewCoverUrl(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-xl text-white focus:outline-none focus:border-sky-500 font-mono text-[11px]"
-                />
+                <label className="block text-neutral-300 mb-1.5 font-medium">อิโมจิประจำเล่ม (Book Emoji)</label>
+                <div className="grid grid-cols-7 gap-2">
+                  {bookEmojiPresets.map((emoji) => (
+                    <button
+                      key={emoji}
+                      type="button"
+                      onClick={() => setNewCoverEmoji(emoji)}
+                      className={`h-10 rounded-xl border text-xl flex items-center justify-center transition cursor-pointer ${
+                        newCoverEmoji === emoji
+                          ? 'bg-neutral-800 border-sky-400 scale-105 shadow-md'
+                          : 'bg-neutral-950 border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900'
+                      }`}
+                    >
+                      <span>{emoji}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="flex justify-end space-x-2 pt-3">

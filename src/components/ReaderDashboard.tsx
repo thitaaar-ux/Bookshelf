@@ -4,22 +4,20 @@ import React, { useState, useEffect } from 'react';
 import { 
   INITIAL_BOOKS, 
   INITIAL_SCHEDULE, 
-  INITIAL_BADGES, 
   INITIAL_READING_LOGS 
 } from '../data/initialData';
-import { Book, UserSchedule, Badge, ReadingLog } from '../types';
+import { Book, UserSchedule, ReadingLog } from '../types';
 import { Header } from './Header';
 import { TsundokuHero } from './TsundokuHero';
 import { BookManagement } from './BookManagement';
+import { ReadingProgressChart } from './ReadingProgressChart';
 import { LineSimulatorModal } from './LineSimulatorModal';
-import { ConciergeChatModal } from './ConciergeChatModal';
 import { SchedulerSettingsModal } from './SchedulerSettingsModal';
-import { GamificationBadgesModal } from './GamificationBadgesModal';
 import { ArchitectureModal } from './ArchitectureModal';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  BookOpen, Plus, Sparkles, Bell, Award, Calendar, 
+  BookOpen, Plus, Bell, Calendar, 
   CheckCircle2, Flame, ArrowRight, ShieldCheck, Cpu 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -44,18 +42,20 @@ export default function ReaderDashboard() {
     return INITIAL_SCHEDULE;
   });
 
-  const [badges, setBadges] = useState<Badge[]>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('tsundoku_badges');
-      return saved ? JSON.parse(saved) : INITIAL_BADGES;
-    }
-    return INITIAL_BADGES;
-  });
-
   const [readingLogs, setReadingLogs] = useState<ReadingLog[]>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('tsundoku_logs');
-      return saved ? JSON.parse(saved) : INITIAL_READING_LOGS;
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length >= 10) {
+            return parsed;
+          }
+        } catch {
+          // ignore error
+        }
+      }
+      return INITIAL_READING_LOGS;
     }
     return INITIAL_READING_LOGS;
   });
@@ -65,9 +65,7 @@ export default function ReaderDashboard() {
 
   // Modals state
   const [isLineSimulatorOpen, setIsLineSimulatorOpen] = useState(false);
-  const [isConciergeOpen, setIsConciergeOpen] = useState(false);
   const [isSchedulerOpen, setIsSchedulerOpen] = useState(false);
-  const [isBadgesOpen, setIsBadgesOpen] = useState(false);
   const [isArchitectureOpen, setIsArchitectureOpen] = useState(false);
   const [isQuickLogModalOpen, setIsQuickLogModalOpen] = useState(false);
 
@@ -83,10 +81,6 @@ export default function ReaderDashboard() {
   useEffect(() => {
     localStorage.setItem('tsundoku_schedule', JSON.stringify(schedule));
   }, [schedule]);
-
-  useEffect(() => {
-    localStorage.setItem('tsundoku_badges', JSON.stringify(badges));
-  }, [badges]);
 
   useEffect(() => {
     localStorage.setItem('tsundoku_logs', JSON.stringify(readingLogs));
@@ -156,26 +150,6 @@ export default function ReaderDashboard() {
       source: 'web_manual'
     };
     setReadingLogs(prev => [newLog, ...prev]);
-
-    // Check badges
-    const updatedTotalPages = books.reduce((sum, b) => sum + (b.id === book.id ? toPage : b.currentPage), 0);
-    setBadges(prev => prev.map(badge => {
-      if (badge.id === 'badge-century' && updatedTotalPages >= 100) {
-        return { ...badge, unlocked: true, unlockedAt: new Date().toISOString().split('T')[0] };
-      }
-      if (badge.id === 'badge-slayer' && completedBooks.length + (isCompleted ? 1 : 0) >= 2) {
-        return { ...badge, unlocked: true, unlockedAt: new Date().toISOString().split('T')[0] };
-      }
-      return badge;
-    }));
-  };
-
-  const handleApplyGoalRecommendation = (pages: number, time: string) => {
-    setSchedule(prev => ({
-      ...prev,
-      targetPagesPerDay: pages,
-      reminderTime: time
-    }));
   };
 
   return (
@@ -191,9 +165,7 @@ export default function ReaderDashboard() {
           }
         }}
         onOpenLineSimulator={() => setIsLineSimulatorOpen(true)}
-        onOpenConcierge={() => setIsConciergeOpen(true)}
         onOpenScheduler={() => setIsSchedulerOpen(true)}
-        onOpenBadges={() => setIsBadgesOpen(true)}
         onOpenBackoffice={() => router.push('/backoffice')}
         lineConnected={schedule.lineConnected}
         clearanceRate={clearanceRate}
@@ -205,7 +177,6 @@ export default function ReaderDashboard() {
         books={books}
         schedule={schedule}
         onOpenLineSimulator={() => setIsLineSimulatorOpen(true)}
-        onOpenConcierge={() => setIsConciergeOpen(true)}
         onQuickLog={() => setIsQuickLogModalOpen(true)}
       />
 
@@ -257,6 +228,15 @@ export default function ReaderDashboard() {
           onQuickLogPages={handleQuickLogPages}
         />
 
+        {/* 30-Day Reading Velocity Chart (Recharts) */}
+        <div className="mt-12">
+          <ReadingProgressChart
+            logs={readingLogs}
+            books={books}
+            schedule={schedule}
+          />
+        </div>
+
         {/* Reading History & Quick Analytics Feed */}
         <div className="mt-12 pt-8 border-t border-neutral-800">
           <div className="flex items-center justify-between mb-4">
@@ -264,12 +244,6 @@ export default function ReaderDashboard() {
               <h3 className="text-sm font-bold text-white">บันทึกการอ่านล่าสุด (Recent Reading Logs)</h3>
               <p className="text-xs text-neutral-400">ประวัติการอ่านที่บันทึกผ่าน Web และ LINE Quick Reply</p>
             </div>
-            <button
-              onClick={() => setIsBadgesOpen(true)}
-              className="text-xs text-neutral-400 hover:text-white transition underline underline-offset-4"
-            >
-              ดูสถิติและเหรียญรางวัลทั้งหมด →
-            </button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -312,7 +286,7 @@ export default function ReaderDashboard() {
           </div>
           <div className="flex items-center space-x-3 text-[11px]">
             <p className="text-neutral-500">
-              ออกแบบสำหรับนักพัฒนาเดี่ยว (Solo Dev) ด้วย Node.js Webhook + Gemini AI
+              ออกแบบสำหรับนักพัฒนาเดี่ยว (Solo Dev) ด้วย Node.js Webhook
             </p>
             <Link
               href="/backoffice"
@@ -337,16 +311,7 @@ export default function ReaderDashboard() {
         onUpdateSchedule={(newSched) => setSchedule(newSched)}
       />
 
-      {/* 2. Concierge Chat Modal */}
-      <ConciergeChatModal
-        isOpen={isConciergeOpen}
-        onClose={() => setIsConciergeOpen(false)}
-        books={books}
-        schedule={schedule}
-        onApplyGoalRecommendation={handleApplyGoalRecommendation}
-      />
-
-      {/* 3. Scheduler Settings Modal */}
+      {/* 2. Scheduler Settings Modal */}
       <SchedulerSettingsModal
         isOpen={isSchedulerOpen}
         onClose={() => setIsSchedulerOpen(false)}
@@ -355,18 +320,7 @@ export default function ReaderDashboard() {
         onSaveSchedule={(newSched) => setSchedule(newSched)}
       />
 
-      {/* 4. Gamification & Badges Modal */}
-      <GamificationBadgesModal
-        isOpen={isBadgesOpen}
-        onClose={() => setIsBadgesOpen(false)}
-        badges={badges}
-        streakCount={7}
-        books={books}
-        currentTheme={currentTheme}
-        onSelectTheme={(themeId) => setCurrentTheme(themeId)}
-      />
-
-      {/* 5. System Architecture & Technical Specifications Modal */}
+      {/* 3. System Architecture & Technical Specifications Modal */}
       <ArchitectureModal
         isOpen={isArchitectureOpen}
         onClose={() => {
@@ -375,7 +329,7 @@ export default function ReaderDashboard() {
         }}
       />
 
-      {/* 6. Quick Manual Log Modal */}
+      {/* 4. Quick Manual Log Modal */}
       {isQuickLogModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
           <div className="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-md p-6 relative">
