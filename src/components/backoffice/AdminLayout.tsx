@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   LayoutDashboard, Users, BookOpen, Radio, 
   Settings, ArrowLeft, ShieldCheck, Activity, 
-  Menu, X, Sparkles, ExternalLink, ChevronRight, MessageSquare 
+  Menu, X, Sparkles, ExternalLink, ChevronRight, MessageSquare, CreditCard 
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -23,6 +23,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   const navItems = [
     { id: 'overview', label: 'ภาพรวมระบบ (Overview)', icon: LayoutDashboard },
     { id: 'line_connect', label: 'LINE แจ้งเตือน (Connect)', icon: MessageSquare },
+    { id: 'stripe', label: 'Stripe & สมาชิก (Billing)', icon: CreditCard },
     { id: 'users', label: 'สมาชิก LINE (Users)', icon: Users },
     { id: 'books', label: 'คลังหนังสือ (Book Catalog)', icon: BookOpen },
     { id: 'broadcast', label: 'Broadcast & Webhook', icon: Radio },

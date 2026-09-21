@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Check, Copy, Eye, EyeOff, Send, 
-  Sparkles, CheckCircle2, AlertCircle, RefreshCw, 
-  Smartphone, MessageSquare, ShieldCheck 
+  Sparkles, CheckCircle2, RefreshCw, 
+  Database, Bot, ExternalLink, ShieldCheck, UserCheck
 } from 'lucide-react';
 
 interface AdminLineConnectTabProps {
@@ -10,16 +10,23 @@ interface AdminLineConnectTabProps {
 }
 
 export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShowToast }) => {
-  // Config state
+  // Config state from DB / API
   const [hasToken, setHasToken] = useState(true);
   const [hasSecret, setHasSecret] = useState(true);
   const [hasTarget, setHasTarget] = useState(true);
 
+  const [botName, setBotName] = useState('Bunnarak');
+  const [botBasicId, setBotBasicId] = useState('@869uobem');
+  const [channelId, setChannelId] = useState('2011678531');
   const [channelAccessToken, setChannelAccessToken] = useState('');
   const [channelSecret, setChannelSecret] = useState('');
-  const [userId, setUserId] = useState('U256aa66d5563c7dd1f7ee2967b9f92d9');
+  const [userId, setUserId] = useState('U9330ea2a3097a7e8ea7b81a9eeb82088');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [reminderDaysAhead, setReminderDaysAhead] = useState(1);
+  const [storageType, setStorageType] = useState('SQLite Database (Table: app_settings)');
+  const [dbFile, setDbFile] = useState('data/tsundoku.db');
+  const [dbRows, setDbRows] = useState<Array<{ key: string; value: string; updated_at: string }>>([]);
+  const [showDbInspector, setShowDbInspector] = useState(false);
 
   // Latest captured webhook user
   const [latestCaptured, setLatestCaptured] = useState<{
@@ -27,8 +34,8 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
     type: string;
     timestamp: string;
   }>({
-    userId: 'U256aa66d5563c7dd1f7ee2967b9f92d9',
-    type: 'message',
+    userId: 'U9330ea2a3097a7e8ea7b81a9eeb82088',
+    type: 'registered',
     timestamp: new Date().toLocaleTimeString('th-TH'),
   });
 
@@ -36,9 +43,11 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
   const [showToken, setShowToken] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
+  const [copiedToken, setCopiedToken] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isTestingExample, setIsTestingExample] = useState(false);
+  const [isReloading, setIsReloading] = useState(false);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
   // Auto-generate current webhook URL
@@ -46,28 +55,56 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
     ? `${window.location.origin}/api/line/webhook`
     : 'https://studio.notaloan.site/api/line/webhook';
 
-  // Load from API on mount
+  const fetchConfig = async () => {
+    try {
+      const res = await fetch('/api/line/config');
+      if (res.ok) {
+        const data = await res.json();
+        setHasToken(data.hasToken);
+        setHasSecret(data.hasSecret);
+        setHasTarget(Boolean(data.targetUserId));
+        if (data.botName) setBotName(data.botName);
+        if (data.botBasicId) setBotBasicId(data.botBasicId);
+        if (data.channelId) setChannelId(data.channelId);
+        if (data.channelAccessToken) setChannelAccessToken(data.channelAccessToken);
+        if (data.channelSecret) setChannelSecret(data.channelSecret);
+        if (data.targetUserId) setUserId(data.targetUserId);
+        if (data.enabled !== undefined) setNotificationsEnabled(data.enabled);
+        if (data.reminderDaysAhead !== undefined) setReminderDaysAhead(data.reminderDaysAhead);
+        if (data.latestCapturedUser) setLatestCaptured(data.latestCapturedUser);
+        if (data.storageType) setStorageType(data.storageType);
+        if (data.dbFile) setDbFile(data.dbFile);
+        if (data.dbRows) setDbRows(data.dbRows);
+      }
+    } catch {
+      // Fallback
+    }
+  };
+
   useEffect(() => {
-    fetch('/api/line/config')
-      .then(res => res.ok ? res.json() : null)
-      .then(data => {
-        if (data) {
-          setHasToken(data.hasToken);
-          setHasSecret(data.hasSecret);
-          setHasTarget(Boolean(data.targetUserId));
-          if (data.targetUserId) setUserId(data.targetUserId);
-          if (data.enabled !== undefined) setNotificationsEnabled(data.enabled);
-          if (data.reminderDaysAhead !== undefined) setReminderDaysAhead(data.reminderDaysAhead);
-          if (data.latestCapturedUser) setLatestCaptured(data.latestCapturedUser);
-        }
-      })
-      .catch(() => {});
+    fetchConfig();
   }, []);
 
   const handleCopyWebhook = () => {
     navigator.clipboard.writeText(webhookUrl);
     setCopiedWebhook(true);
     setTimeout(() => setCopiedWebhook(false), 2000);
+  };
+
+  const handleCopyToken = () => {
+    if (channelAccessToken) {
+      navigator.clipboard.writeText(channelAccessToken);
+      setCopiedToken(true);
+      setTimeout(() => setCopiedToken(false), 2000);
+    }
+  };
+
+  const handleReload = async () => {
+    setIsReloading(true);
+    await fetchConfig();
+    setIsReloading(false);
+    setActionFeedback('โหลดข้อมูลล่าสุดจาก Database สำเร็จ');
+    setTimeout(() => setActionFeedback(null), 3000);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -77,8 +114,11 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
 
     try {
       const payload: any = {
+        botName: botName.trim(),
+        botBasicId: botBasicId.trim(),
+        channelId: channelId.trim(),
         enabled: notificationsEnabled,
-        targetUserId: userId,
+        targetUserId: userId.trim(),
         reminderDaysAhead: Number(reminderDaysAhead)
       };
       if (channelAccessToken.trim()) payload.channelAccessToken = channelAccessToken.trim();
@@ -94,10 +134,8 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
         if (channelAccessToken.trim()) setHasToken(true);
         if (channelSecret.trim()) setHasSecret(true);
         setHasTarget(Boolean(userId.trim()));
-        setChannelAccessToken('');
-        setChannelSecret('');
-        setActionFeedback('บันทึกการเชื่อมต่อ LINE เรียบร้อยแล้ว');
-        onShowToast?.('บันทึกการเชื่อมต่อ LINE สำเร็จ');
+        setActionFeedback('บันทึกการตั้งค่า LINE ลง Database (data/db.json) สำเร็จแล้ว!');
+        onShowToast?.('บันทึกข้อมูลลง Database เรียบร้อย');
       }
     } catch {
       setActionFeedback('บันทึกลงระบบจำลองสำเร็จ');
@@ -150,75 +188,162 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
   return (
     <div className="max-w-3xl space-y-6">
       {/* Page Header */}
-      <div className="pb-4 border-b border-neutral-800/80">
-        <h1 className="text-xl font-bold text-white tracking-tight">LINE แจ้งเตือน</h1>
-        <p className="text-xs text-neutral-400 mt-1">
-          กำหนดค่าการเชื่อมต่อ LINE Messaging API, ตั้งค่า Webhook URL และทดสอบระบบแจ้งเตือนทลายกองดอง
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-neutral-800/80 gap-3">
+        <div>
+          <div className="flex items-center space-x-2.5">
+            <h1 className="text-xl font-bold text-white tracking-tight">LINE แจ้งเตือน & Messaging API</h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+              <Database className="w-2.5 h-2.5 mr-1" />
+              Database Storage
+            </span>
+          </div>
+          <p className="text-xs text-neutral-400 mt-1">
+            ตั้งค่า LINE Official Account จัดเก็บข้อมูลลงฐานข้อมูล <code className="text-emerald-400 font-mono">data/db.json</code> ถาวร แก้ไขได้ทันทีไม่ต้องรีสตาร์ทเซิร์ฟเวอร์
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleReload}
+          disabled={isReloading}
+          className="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-300 text-xs flex items-center space-x-1.5 transition cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${isReloading ? 'animate-spin' : ''}`} />
+          <span>รีเฟรชจาก DB</span>
+        </button>
       </div>
 
       {/* Feedback Toast Banner */}
       {actionFeedback && (
-        <div className="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs flex items-center space-x-2">
+        <div className="p-3.5 rounded-xl bg-emerald-950/60 border border-emerald-500/50 text-emerald-300 text-xs flex items-center space-x-2 animate-in fade-in duration-200">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
           <span>{actionFeedback}</span>
         </div>
       )}
 
-      {/* Top Status Card */}
-      <div className="p-4 rounded-2xl bg-neutral-900/80 border border-neutral-800 space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-neutral-300 font-medium">Channel access token</span>
-              {hasToken ? (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-400 border border-emerald-800/60 text-[11px] font-medium">
-                  บันทึกแล้ว
-                </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-400 text-[11px]">
-                  ยังไม่บันทึก
-                </span>
-              )}
+      {/* Profile Card of LINE OA */}
+      <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/30 via-neutral-900/80 to-neutral-900/90 border border-emerald-500/20 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 flex-shrink-0">
+              <Bot className="w-6 h-6" />
             </div>
-
-            <div className="flex items-center space-x-2">
-              <span className="text-neutral-300 font-medium">Channel secret</span>
-              {hasSecret ? (
-                <span className="px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-400 border border-emerald-800/60 text-[11px] font-medium">
-                  บันทึกแล้ว
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-bold text-white text-sm">{botName || 'Bunnarak'}</span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-[10px] font-semibold border border-emerald-500/40">
+                  {botBasicId || '@869uobem'}
                 </span>
-              ) : (
-                <span className="px-2 py-0.5 rounded-md bg-neutral-800 text-neutral-400 text-[11px]">
-                  ยังไม่บันทึก
-                </span>
-              )}
+              </div>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                Channel ID: <span className="font-mono text-neutral-200">{channelId || '2011678531'}</span> · ปลายทาง: <span className="font-mono text-emerald-400">{userId}</span>
+              </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
-            <span className="text-neutral-300 font-medium">User / Group ID</span>
-            {hasTarget ? (
-              <span className="px-2 py-0.5 rounded-md bg-emerald-950 text-emerald-400 border border-emerald-800/60 text-[11px] font-medium">
-                มีปลายทางแล้ว
-              </span>
-            ) : (
-              <span className="px-2 py-0.5 rounded-md bg-amber-950 text-amber-400 border border-amber-800/60 text-[11px] font-medium">
-                ยังไม่มีปลายทาง
-              </span>
-            )}
+            <a
+              href={`https://line.me/R/ti/p/${encodeURIComponent(botBasicId || '@869uobem')}`}
+              target="_blank"
+              rel="noreferrer"
+              className="px-3 py-1.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white text-xs font-semibold flex items-center space-x-1.5 transition shadow-sm"
+            >
+              <span>แอดไลน์ OA</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
         </div>
 
-        <p className="text-[11px] text-neutral-400 pt-1 border-t border-neutral-800/60">
-          ช่อง token/secret จะว่างหลังบันทึกเพื่อความปลอดภัย ถ้าขึ้น “บันทึกแล้ว” แปลว่าข้อมูลอยู่ในระบบแล้ว
-        </p>
+        <div className="pt-2 border-t border-neutral-800/80 flex flex-wrap items-center gap-4 text-xs">
+          <div className="flex items-center space-x-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-neutral-400">สถานะ Token:</span>
+            {hasToken ? (
+              <span className="text-emerald-400 font-medium">พร้อมส่งข้อความ</span>
+            ) : (
+              <span className="text-amber-400 font-medium">ยังไม่ระบุ Token</span>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-1.5">
+            <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
+            <span className="text-neutral-400">สถานะปลายทาง:</span>
+            {hasTarget ? (
+              <span className="text-emerald-400 font-medium">ผูกกับ {userId.slice(0, 10)}... แล้ว</span>
+            ) : (
+              <span className="text-neutral-400">ยังไม่ระบุ</span>
+            )}
+          </div>
+
+          <div className="flex items-center space-x-1.5">
+            <Database className="w-3.5 h-3.5 text-sky-400" />
+            <span className="text-neutral-400">ฐานข้อมูล:</span>
+            <span className="text-sky-300 font-mono text-[11px]">SQLite ({dbFile})</span>
+          </div>
+        </div>
+      </div>
+
+      {/* SQLite Database Table Viewer */}
+      <div className="p-4 rounded-2xl bg-neutral-900/80 border border-neutral-800 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Database className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs font-bold text-white">
+              SQLite Table: <span className="text-emerald-400 font-mono">app_settings</span>
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 font-mono">
+              {dbRows.length} แถวใน DB
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowDbInspector(!showDbInspector)}
+            className="text-[11px] text-sky-400 hover:text-sky-300 font-medium transition cursor-pointer"
+          >
+            {showDbInspector ? 'ซ่อนข้อมูลตาราง SQL' : 'ดูข้อมูลตาราง SQL (SELECT * FROM app_settings)'}
+          </button>
+        </div>
+
+        {showDbInspector && (
+          <div className="overflow-x-auto rounded-xl border border-neutral-800 bg-neutral-950 p-2.5 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 pb-1 border-b border-neutral-800">
+              <span className="text-emerald-400">QUERY: SELECT key, value, updated_at FROM app_settings;</span>
+            </div>
+            <table className="w-full text-[11px] text-left">
+              <thead>
+                <tr className="text-neutral-500 border-b border-neutral-800/60">
+                  <th className="pb-1.5 font-medium">Key (PK)</th>
+                  <th className="pb-1.5 font-medium">Value (Stored in DB)</th>
+                  <th className="pb-1.5 font-medium text-right">Updated At</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-neutral-800/40 font-mono">
+                {dbRows.map((row) => (
+                  <tr key={row.key} className="hover:bg-neutral-900/50">
+                    <td className="py-1.5 text-sky-300 font-semibold pr-2">{row.key}</td>
+                    <td className="py-1.5 text-neutral-300 max-w-xs truncate pr-2" title={row.value}>
+                      {row.key.includes('secret') || row.key.includes('token')
+                        ? row.value.slice(0, 8) + '...' + row.value.slice(-6)
+                        : row.value}
+                    </td>
+                    <td className="py-1.5 text-neutral-500 text-right whitespace-nowrap">{row.updated_at}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSave} className="space-y-5 text-xs">
         {/* Toggle: เปิดแจ้งเตือน */}
-        <div className="flex items-center justify-between pt-1">
-          <label className="text-sm font-semibold text-neutral-200">เปิดแจ้งเตือน</label>
+        <div className="flex items-center justify-between p-3.5 rounded-xl bg-neutral-900/60 border border-neutral-800">
+          <div>
+            <label className="text-sm font-semibold text-neutral-200 block">เปิดระบบแจ้งเตือน LINE</label>
+            <p className="text-[11px] text-neutral-400 mt-0.5">
+              เปิดให้ระบบส่งข้อความแจ้งเตือนเป้าหมายการอ่านหนังสือเข้า LINE ผู้ใช้ตามเวลาที่กำหนด
+            </p>
+          </div>
           <button
             type="button"
             role="switch"
@@ -238,7 +363,7 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
 
         {/* Webhook URL Input */}
         <div>
-          <label className="block text-neutral-300 font-medium mb-1.5">Webhook URL</label>
+          <label className="block text-neutral-300 font-medium mb-1.5">LINE Webhook URL สำหรับผูกกับ LINE Developers</label>
           <div className="relative flex items-center">
             <input
               type="text"
@@ -249,7 +374,7 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
             <button
               type="button"
               onClick={handleCopyWebhook}
-              className="absolute right-2 px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition text-[11px] flex items-center space-x-1"
+              className="absolute right-2 px-2.5 py-1 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-neutral-300 transition text-[11px] flex items-center space-x-1 cursor-pointer"
             >
               {copiedWebhook ? (
                 <>
@@ -265,64 +390,113 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
             </button>
           </div>
           <p className="text-[10px] text-neutral-500 mt-1">
-            นำ URL นี้ไปใส่ในช่อง Webhook URL บน LINE Developers Console แล้วกด Verify
+            นำ URL นี้ไปใส่ในช่อง Webhook URL ใน Messaging API บน LINE Developers Console แล้วกด Verify
           </p>
         </div>
 
-        {/* Channel access token */}
-        <div>
-          <label className="block text-neutral-300 font-medium mb-1.5">Channel access token</label>
-          <div className="relative flex items-center">
+        {/* Two Columns: Bot Name & Bot Basic ID */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-neutral-300 font-medium mb-1.5">ชื่อ LINE OA (Bot Name)</label>
             <input
-              type={showToken ? 'text' : 'password'}
-              value={channelAccessToken}
-              onChange={(e) => setChannelAccessToken(e.target.value)}
-              placeholder={hasToken ? 'บันทึกแล้ว · เว้นว่างเพื่อใช้ token เดิม' : 'กรอก Channel access token จาก LINE Console'}
-              className="w-full pl-3.5 pr-10 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 font-mono text-xs focus:outline-none focus:border-emerald-500/50"
+              type="text"
+              value={botName}
+              onChange={(e) => setBotName(e.target.value)}
+              placeholder="เช่น Bunnarak"
+              className="w-full px-3.5 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 text-xs focus:outline-none focus:border-emerald-500/50"
             />
-            <button
-              type="button"
-              onClick={() => setShowToken(!showToken)}
-              className="absolute right-3 text-neutral-500 hover:text-neutral-300 transition"
-            >
-              {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-            </button>
           </div>
+
+          <div>
+            <label className="block text-neutral-300 font-medium mb-1.5">LINE Basic ID (OA ID)</label>
+            <input
+              type="text"
+              value={botBasicId}
+              onChange={(e) => setBotBasicId(e.target.value)}
+              placeholder="เช่น @869uobem"
+              className="w-full px-3.5 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 font-mono text-xs focus:outline-none focus:border-emerald-500/50"
+            />
+          </div>
+        </div>
+
+        {/* Channel ID */}
+        <div>
+          <label className="block text-neutral-300 font-medium mb-1.5">Channel ID</label>
+          <input
+            type="text"
+            value={channelId}
+            onChange={(e) => setChannelId(e.target.value)}
+            placeholder="เช่น 2011678531"
+            className="w-full px-3.5 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 font-mono text-xs focus:outline-none focus:border-emerald-500/50"
+          />
         </div>
 
         {/* Channel secret */}
         <div>
-          <label className="block text-neutral-300 font-medium mb-1.5">Channel secret</label>
+          <label className="block text-neutral-300 font-medium mb-1.5">Channel Secret</label>
           <div className="relative flex items-center">
             <input
               type={showSecret ? 'text' : 'password'}
               value={channelSecret}
               onChange={(e) => setChannelSecret(e.target.value)}
-              placeholder={hasSecret ? 'บันทึกแล้ว · เว้นว่างเพื่อใช้ secret เดิม' : 'กรอก Channel secret จาก LINE Console'}
+              placeholder="กรอก Channel secret จาก LINE Console"
               className="w-full pl-3.5 pr-10 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 font-mono text-xs focus:outline-none focus:border-emerald-500/50"
             />
             <button
               type="button"
               onClick={() => setShowSecret(!showSecret)}
-              className="absolute right-3 text-neutral-500 hover:text-neutral-300 transition"
+              className="absolute right-3 text-neutral-500 hover:text-neutral-300 transition cursor-pointer"
             >
               {showSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
-        {/* User / Group ID */}
+        {/* Channel access token */}
         <div>
-          <label className="block text-neutral-300 font-medium mb-1.5">User / Group ID</label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-neutral-300 font-medium">Channel Access Token (Long-lived)</label>
+            {channelAccessToken && (
+              <button
+                type="button"
+                onClick={handleCopyToken}
+                className="text-[10px] text-neutral-400 hover:text-neutral-200 flex items-center space-x-1 cursor-pointer"
+              >
+                {copiedToken ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedToken ? 'คัดลอกแล้ว' : 'คัดลอก Token'}</span>
+              </button>
+            )}
+          </div>
+          <div className="relative flex items-center">
+            <input
+              type={showToken ? 'text' : 'password'}
+              value={channelAccessToken}
+              onChange={(e) => setChannelAccessToken(e.target.value)}
+              placeholder="กรอก Channel access token จาก LINE Console"
+              className="w-full pl-3.5 pr-10 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 font-mono text-xs focus:outline-none focus:border-emerald-500/50"
+            />
+            <button
+              type="button"
+              onClick={() => setShowToken(!showToken)}
+              className="absolute right-3 text-neutral-500 hover:text-neutral-300 transition cursor-pointer"
+            >
+              {showToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Target User ID */}
+        <div>
+          <label className="block text-neutral-300 font-medium mb-1.5">User ID ปลายทาง (Target LINE User ID)</label>
           <input
             type="text"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
-            placeholder="เช่น U256aa66d5563c7dd1f7ee2967b9f92d9"
+            placeholder="เช่น U9330ea2a3097a7e8ea7b81a9eeb82088"
             className="w-full px-3.5 py-2.5 bg-neutral-900 border border-neutral-800 rounded-xl text-white placeholder-neutral-500 font-mono text-xs focus:outline-none focus:border-emerald-500/50"
           />
           <p className="text-[11px] text-neutral-400 mt-1">
-            เว้นว่างไว้ก่อน แล้วส่ง test หา LINE OA เพื่อให้ระบบจับ ID ให้อัตโนมัติ
+            ระบุ LINE User ID ของบัญชีที่จะให้รับการแจ้งเตือนและการทดสอบส่ง
           </p>
         </div>
 
@@ -344,7 +518,7 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
                 <button
                   type="button"
                   onClick={() => setUserId(latestCaptured.userId)}
-                  className="px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-sky-400 text-[10px] transition"
+                  className="px-2 py-0.5 rounded bg-neutral-800 hover:bg-neutral-700 text-sky-400 text-[10px] transition cursor-pointer"
                 >
                   ใช้ ID นี้
                 </button>
@@ -370,14 +544,14 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
 
         {/* Action Buttons */}
         <div className="pt-2 flex flex-wrap items-center gap-2.5">
-          {/* บันทึก LINE */}
+          {/* บันทึก LINE ลง DB */}
           <button
             type="submit"
             disabled={isSaving}
             className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-semibold text-xs transition cursor-pointer flex items-center space-x-1.5 shadow-md shadow-emerald-500/10 disabled:opacity-50"
           >
-            {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-            <span>บันทึก LINE</span>
+            {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Database className="w-3.5 h-3.5" />}
+            <span>บันทึกลง Database</span>
           </button>
 
           {/* ทดสอบส่ง */}
@@ -388,7 +562,7 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
             className="px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border border-neutral-700 font-medium text-xs transition cursor-pointer flex items-center space-x-1.5 disabled:opacity-50"
           >
             {isTesting ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 text-sky-400" />}
-            <span>ทดสอบส่ง</span>
+            <span>ทดสอบส่งข้อความ</span>
           </button>
 
           {/* ทดสอบตัวอย่างแจ้งเตือน */}

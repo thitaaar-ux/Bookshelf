@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Bell, Award, MessageSquare, Calendar, Sparkles, ShieldCheck } from 'lucide-react';
+import { BookOpen, Bell, Award, MessageSquare, Calendar, Sparkles, ShieldCheck, Crown } from 'lucide-react';
 
 interface HeaderProps {
   activeTab?: 'dashboard' | 'library' | 'architecture';
@@ -8,6 +8,7 @@ interface HeaderProps {
   onOpenConcierge: () => void;
   onOpenScheduler: () => void;
   onOpenBadges: () => void;
+  onOpenSubscription?: () => void;
   onOpenBackoffice?: () => void;
   lineConnected: boolean;
   clearanceRate: number;
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenConcierge,
   onOpenScheduler,
   onOpenBadges,
+  onOpenSubscription,
   onOpenBackoffice,
   lineConnected,
   clearanceRate,
@@ -63,6 +65,20 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="text-neutral-400 text-[11px]">ทลายกองดอง:</span>
               <span className="font-mono font-bold text-white">{clearanceRate}%</span>
             </button>
+
+            {/* Pro 3-Day Free Trial Button */}
+            {onOpenSubscription && (
+              <button
+                id="header-btn-subscription"
+                onClick={onOpenSubscription}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/50 hover:border-amber-400 text-amber-300 text-xs font-bold transition cursor-pointer shadow-sm shadow-amber-500/10"
+                title="สมัคร Tsundoku Pro (ทดลองใช้ฟรี 3 วัน จากนั้น 39 บ./เดือน)"
+              >
+                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline">ทดลองฟรี 3 วัน</span>
+                <span className="sm:hidden">PRO</span>
+              </button>
+            )}
 
             {/* LINE Bot Simulator trigger button */}
             <button

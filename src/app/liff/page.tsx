@@ -23,8 +23,8 @@ export default function LiffPage() {
     } else {
       // Mock LIFF user profile
       setLiffProfile({
-        displayName: 'ผู้อ่านผ่าน LINE',
-        userId: 'U256aa66d5563c7dd1f7ee2967b9f92d9',
+        displayName: 'Bunnarak',
+        userId: 'U9330ea2a3097a7e8ea7b81a9eeb82088',
       });
     }
   }, []);

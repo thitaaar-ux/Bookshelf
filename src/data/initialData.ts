@@ -99,8 +99,8 @@ export const INITIAL_SCHEDULE: UserSchedule = {
   targetPagesPerDay: 20,
   snoozeDurationMinutes: 30,
   lineConnected: true,
-  lineUserId: 'U91a82fbc789e02341bcae5102',
-  lineDisplayName: 'Korn_Dev',
+  lineUserId: 'U9330ea2a3097a7e8ea7b81a9eeb82088',
+  lineDisplayName: 'Bunnarak',
   activeBookId: 'book-1'
 };
 

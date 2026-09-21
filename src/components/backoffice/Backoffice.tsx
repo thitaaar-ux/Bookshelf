@@ -11,6 +11,7 @@ import { AdminUsersTab } from './AdminUsersTab';
 import { AdminBooksTab } from './AdminBooksTab';
 import { AdminBroadcastTab } from './AdminBroadcastTab';
 import { AdminSettingsTab } from './AdminSettingsTab';
+import { AdminStripeTab } from './AdminStripeTab';
 
 interface BackofficeProps {
   books?: Book[];
@@ -154,6 +155,10 @@ export const Backoffice: React.FC<BackofficeProps> = ({
 
       {currentTab === 'line_connect' && (
         <AdminLineConnectTab onShowToast={showToast} />
+      )}
+
+      {currentTab === 'stripe' && (
+        <AdminStripeTab onShowToast={showToast} />
       )}
 
       {currentTab === 'users' && (

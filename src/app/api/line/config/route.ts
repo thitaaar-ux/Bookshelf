@@ -1,35 +1,62 @@
 import { NextResponse } from 'next/server';
-import { lineConfig } from '@/src/lib/serverState';
+import { getLineConfigFromDb, saveLineConfigToDb, getAllAppSettingsFromDb } from '@/src/lib/db';
 
 export async function GET() {
+  const currentConfig = getLineConfigFromDb();
+  const dbRows = getAllAppSettingsFromDb();
+
   return NextResponse.json({
-    hasToken: Boolean(lineConfig.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN),
-    hasSecret: Boolean(lineConfig.channelSecret || process.env.LINE_CHANNEL_SECRET),
-    targetUserId: lineConfig.targetUserId,
-    enabled: lineConfig.enabled,
-    reminderDaysAhead: lineConfig.reminderDaysAhead,
-    latestCapturedUser: lineConfig.latestCapturedUser,
+    hasToken: Boolean(currentConfig.channelAccessToken),
+    hasSecret: Boolean(currentConfig.channelSecret),
+    botName: currentConfig.botName || 'Bunnarak',
+    botBasicId: currentConfig.botBasicId || '@869uobem',
+    channelId: currentConfig.channelId || '2011678531',
+    channelAccessToken: currentConfig.channelAccessToken || '',
+    channelSecret: currentConfig.channelSecret || '',
+    targetUserId: currentConfig.targetUserId || 'U9330ea2a3097a7e8ea7b81a9eeb82088',
+    enabled: currentConfig.enabled,
+    reminderDaysAhead: currentConfig.reminderDaysAhead,
+    storageType: 'SQLite Database (Table: app_settings)',
+    dbFile: 'data/tsundoku.db',
+    dbRows: dbRows
   });
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { channelAccessToken, channelSecret, targetUserId, enabled, reminderDaysAhead } = body;
+    const { 
+      botName,
+      botBasicId,
+      channelId,
+      channelAccessToken, 
+      channelSecret, 
+      targetUserId, 
+      enabled, 
+      reminderDaysAhead 
+    } = body;
 
-    if (channelAccessToken) {
-      lineConfig.channelAccessToken = channelAccessToken;
-      process.env.LINE_CHANNEL_ACCESS_TOKEN = channelAccessToken;
+    const updates: any = {};
+    if (botName !== undefined) updates.botName = botName.trim();
+    if (botBasicId !== undefined) updates.botBasicId = botBasicId.trim();
+    if (channelId !== undefined) updates.channelId = channelId.trim();
+    if (channelAccessToken !== undefined && channelAccessToken.trim()) {
+      updates.channelAccessToken = channelAccessToken.trim();
     }
-    if (channelSecret) {
-      lineConfig.channelSecret = channelSecret;
-      process.env.LINE_CHANNEL_SECRET = channelSecret;
+    if (channelSecret !== undefined && channelSecret.trim()) {
+      updates.channelSecret = channelSecret.trim();
     }
-    if (targetUserId !== undefined) lineConfig.targetUserId = targetUserId;
-    if (enabled !== undefined) lineConfig.enabled = enabled;
-    if (reminderDaysAhead !== undefined) lineConfig.reminderDaysAhead = Number(reminderDaysAhead);
+    if (targetUserId !== undefined) updates.targetUserId = targetUserId.trim();
+    if (enabled !== undefined) updates.enabled = Boolean(enabled);
+    if (reminderDaysAhead !== undefined) updates.reminderDaysAhead = Number(reminderDaysAhead);
 
-    return NextResponse.json({ success: true, message: 'บันทึกการตั้งค่า LINE สำเร็จ' });
+    const savedConfig = saveLineConfigToDb(updates);
+
+    return NextResponse.json({ 
+      success: true, 
+      message: 'บันทึกลง SQLite Database (Table: app_settings ใน data/tsundoku.db) สำเร็จแล้ว',
+      config: savedConfig
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message }, { status: 400 });
   }

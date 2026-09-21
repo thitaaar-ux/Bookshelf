@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
-import { lineConfig, addWebhookLog } from '@/src/lib/serverState';
+import { addWebhookLog } from '@/src/lib/serverState';
+import { getLineConfigFromDb } from '@/src/lib/db';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { userId, isExample } = body;
-    const targetId = userId || lineConfig.targetUserId;
-    const token = lineConfig.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN;
+    const dbLineConfig = getLineConfigFromDb();
+    const targetId = userId || dbLineConfig.targetUserId;
+    const token = dbLineConfig.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
     const pushText = isExample
       ? '📖 [ตัวอย่างแจ้งเตือน Tsundoku]\nคืนนี้เวลา 20:00 น. คุณมีนัดอ่านเล่ม "Atomic Habits" อีก 20 หน้า\nทลายกองดองต่อเนื่อง Streak 🔥 7 วันแล้ว สู้ๆ ครับ!'

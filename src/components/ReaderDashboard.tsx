@@ -16,11 +16,12 @@ import { ConciergeChatModal } from './ConciergeChatModal';
 import { SchedulerSettingsModal } from './SchedulerSettingsModal';
 import { GamificationBadgesModal } from './GamificationBadgesModal';
 import { ArchitectureModal } from './ArchitectureModal';
+import { SubscriptionModal } from './SubscriptionModal';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   BookOpen, Plus, Sparkles, Bell, Award, Calendar, 
-  CheckCircle2, Flame, ArrowRight, ShieldCheck, Cpu 
+  CheckCircle2, Flame, ArrowRight, ShieldCheck, Cpu, Crown 
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -70,6 +71,7 @@ export default function ReaderDashboard() {
   const [isBadgesOpen, setIsBadgesOpen] = useState(false);
   const [isArchitectureOpen, setIsArchitectureOpen] = useState(false);
   const [isQuickLogModalOpen, setIsQuickLogModalOpen] = useState(false);
+  const [isSubscriptionOpen, setIsSubscriptionOpen] = useState(false);
 
   // Quick Log Form state
   const [selectedBookForLog, setSelectedBookForLog] = useState<string>(schedule.activeBookId || books[0]?.id || '');
@@ -194,6 +196,7 @@ export default function ReaderDashboard() {
         onOpenConcierge={() => setIsConciergeOpen(true)}
         onOpenScheduler={() => setIsSchedulerOpen(true)}
         onOpenBadges={() => setIsBadgesOpen(true)}
+        onOpenSubscription={() => setIsSubscriptionOpen(true)}
         onOpenBackoffice={() => router.push('/backoffice')}
         lineConnected={schedule.lineConnected}
         clearanceRate={clearanceRate}
@@ -211,6 +214,34 @@ export default function ReaderDashboard() {
 
       {/* 3. Core Workspace & Library */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        {/* Pro 3-Day Trial Banner */}
+        <div className="mb-6 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-950/40 via-orange-950/20 to-neutral-900/80 border border-amber-500/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl shadow-amber-500/5">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center shrink-0">
+              <Crown className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-xs sm:text-sm font-bold text-white">TSUNDOKU PRO — สมาชิกรายเดือน</h3>
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  ทดลองใช้ฟรี 3 วัน
+                </span>
+              </div>
+              <p className="text-[11px] text-neutral-400 mt-0.5">
+                AI Reading Concierge ไม่จำกัด &bull; LINE Smart Push แจ้งเตือนกระตุ้น &bull; จากนั้นเพียง 39 บ./เดือน
+              </p>
+            </div>
+          </div>
+          <button
+            id="dashboard-btn-open-trial"
+            onClick={() => setIsSubscriptionOpen(true)}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-neutral-950 font-black text-xs transition cursor-pointer shadow-lg shadow-amber-500/20 whitespace-nowrap flex items-center justify-center space-x-1.5"
+          >
+            <span>เริ่มทดลองฟรี 3 วัน</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
         
         {/* Section title & Quick guide */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-neutral-800/80 mb-6 gap-3">
@@ -373,6 +404,12 @@ export default function ReaderDashboard() {
           setIsArchitectureOpen(false);
           setActiveTab('dashboard');
         }}
+      />
+
+      {/* 6. Tsundoku Pro Subscription Modal (3 Days Trial + 39 THB/Mo) */}
+      <SubscriptionModal
+        isOpen={isSubscriptionOpen}
+        onClose={() => setIsSubscriptionOpen(false)}
       />
 
       {/* 6. Quick Manual Log Modal */}
