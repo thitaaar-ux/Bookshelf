@@ -37,7 +37,9 @@ export const BookManagement: React.FC<BookManagementProps> = ({
   const [newCategory, setNewCategory] = useState('Self Development');
   const [newTargetPages, setNewTargetPages] = useState(20);
   const [newStatus, setNewStatus] = useState<BookStatus>('backlog');
-  const [newCoverUrl, setNewCoverUrl] = useState('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80');
+  const [newCoverEmoji, setNewCoverEmoji] = useState('📖');
+
+  const bookEmojiPresets = ['📖', '📚', '📕', '📗', '📘', '📙', '📓', '📔', '⚡', '🧠', '💡', '🎯', '🚀', '☕'];
 
   // Filtered books
   const filteredBooks = books.filter(b => {
@@ -61,12 +63,14 @@ export const BookManagement: React.FC<BookManagementProps> = ({
       targetPagesPerDay: Number(newTargetPages) || 20,
       targetFinishDate: new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0],
       status: newStatus,
-      coverUrl: newCoverUrl
+      coverEmoji: newCoverEmoji,
+      coverUrl: ''
     });
 
     // Reset and close
     setNewTitle('');
     setNewAuthor('');
+    setNewCoverEmoji('📖');
     setIsAddModalOpen(false);
   };
 
@@ -84,15 +88,6 @@ export const BookManagement: React.FC<BookManagementProps> = ({
 
     onQuickLogPages(book, pages);
   };
-
-  const coverPresets = [
-    'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1532012164546-f432f2e3777a?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1553729459-efe14ef6055d?auto=format&fit=crop&w=600&q=80'
-  ];
 
   return (
     <div className="space-y-6">
@@ -231,16 +226,13 @@ export const BookManagement: React.FC<BookManagementProps> = ({
                 <div>
                   {/* Top metadata */}
                   <div className="flex items-start space-x-3.5">
-                    {/* Book Cover */}
-                    <div className="relative w-20 h-28 rounded-lg overflow-hidden bg-neutral-800 shrink-0 border border-neutral-700/60 shadow-md group-hover:scale-[1.02] transition">
-                      <img
-                        src={book.coverUrl}
-                        alt={book.title}
-                        className="w-full h-full object-cover"
-                        referrerPolicy="no-referrer"
-                      />
+                    {/* Book Emoji Avatar */}
+                    <div className="relative w-16 h-22 sm:w-18 sm:h-24 rounded-xl bg-gradient-to-b from-neutral-800 to-neutral-900 shrink-0 border border-neutral-700/60 shadow-md flex items-center justify-center group-hover:scale-[1.02] transition">
+                      <span className="text-3xl sm:text-4xl select-none" role="img" aria-label="Book emoji">
+                        {book.coverEmoji || '📖'}
+                      </span>
                       {isActive && (
-                        <div className="absolute top-1 left-1 px-1 py-0.5 rounded bg-emerald-950/90 border border-emerald-500/60 text-[9px] font-mono text-emerald-300 font-semibold flex items-center space-x-0.5">
+                        <div className="absolute -top-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-950/95 border border-emerald-500/80 text-[9px] font-mono text-emerald-300 font-semibold flex items-center space-x-0.5 shadow-sm">
                           <Bell className="w-2.5 h-2.5" />
                           <span>LINE</span>
                         </div>
@@ -525,30 +517,27 @@ export const BookManagement: React.FC<BookManagementProps> = ({
                 </div>
               </div>
 
-              {/* Cover selection */}
+              {/* Emoji selection */}
               <div>
-                <label className="block text-xs font-medium text-neutral-300 mb-1">รูปหน้าปก (เลือก Preset หรือระบุ URL)</label>
-                <div className="flex items-center space-x-2 mb-2 overflow-x-auto pb-1">
-                  {coverPresets.map((preset, idx) => (
+                <label className="block text-xs font-medium text-neutral-300 mb-1.5">
+                  เลือกอิโมจิประจำเล่ม (Book Emoji) *
+                </label>
+                <div className="grid grid-cols-7 gap-2">
+                  {bookEmojiPresets.map((emoji) => (
                     <button
-                      key={idx}
+                      key={emoji}
                       type="button"
-                      onClick={() => setNewCoverUrl(preset)}
-                      className={`w-12 h-16 rounded border overflow-hidden shrink-0 transition ${
-                        newCoverUrl === preset ? 'ring-2 ring-white scale-105' : 'opacity-60 hover:opacity-100'
+                      onClick={() => setNewCoverEmoji(emoji)}
+                      className={`h-10 rounded-xl border text-xl flex items-center justify-center transition cursor-pointer ${
+                        newCoverEmoji === emoji
+                          ? 'bg-neutral-800 border-white scale-105 shadow-md'
+                          : 'bg-neutral-950 border-neutral-800 hover:border-neutral-700 hover:bg-neutral-900'
                       }`}
                     >
-                      <img src={preset} alt="preset" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <span>{emoji}</span>
                     </button>
                   ))}
                 </div>
-                <input
-                  type="url"
-                  value={newCoverUrl}
-                  onChange={(e) => setNewCoverUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full px-3 py-1.5 bg-neutral-950 border border-neutral-800 rounded-xl text-xs text-neutral-300 focus:outline-none"
-                />
               </div>
 
               <div className="pt-4 border-t border-neutral-800 flex items-center justify-end space-x-2">

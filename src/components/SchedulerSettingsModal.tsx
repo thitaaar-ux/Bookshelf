@@ -152,7 +152,7 @@ export const SchedulerSettingsModal: React.FC<SchedulerSettingsModalProps> = ({
             >
               {books.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.title} ({b.currentPage}/{b.totalPages} หน้า) - {b.status}
+                  {b.coverEmoji || '📖'} {b.title} ({b.currentPage}/{b.totalPages} หน้า)
                 </option>
               ))}
             </select>

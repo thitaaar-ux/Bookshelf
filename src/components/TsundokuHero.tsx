@@ -1,21 +1,21 @@
 import React from 'react';
-import { BookOpen, Flame, CheckCircle2, Bookmark, Bell, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { BookOpen, Flame, CheckCircle2, Bookmark, Bell, ShieldCheck, TrendingUp } from 'lucide-react';
 import { Book, UserSchedule } from '../types';
 
 interface TsundokuHeroProps {
   books: Book[];
   schedule: UserSchedule;
   onOpenLineSimulator: () => void;
-  onOpenConcierge: () => void;
   onQuickLog: () => void;
+  onViewCharts?: () => void;
 }
 
 export const TsundokuHero: React.FC<TsundokuHeroProps> = ({
   books,
   schedule,
   onOpenLineSimulator,
-  onOpenConcierge,
-  onQuickLog
+  onQuickLog,
+  onViewCharts
 }) => {
   const readingBooks = books.filter(b => b.status === 'reading');
   const backlogBooks = books.filter(b => b.status === 'backlog');
@@ -38,53 +38,6 @@ export const TsundokuHero: React.FC<TsundokuHeroProps> = ({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Top Banner: Concierge Status Announcement */}
-        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-neutral-900 via-neutral-900/90 to-neutral-900/60 border border-neutral-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-neutral-800 border border-neutral-700 flex items-center justify-center text-white shrink-0 shadow-sm">
-              <Sparkles className="w-5 h-5 text-amber-300" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs uppercase tracking-wider font-mono text-neutral-400">
-                  Concierge Status
-                </span>
-                <span className="inline-flex items-center px-1.5 py-0.2 text-[10px] font-medium bg-emerald-950 text-emerald-400 border border-emerald-800 rounded">
-                  Active
-                </span>
-              </div>
-              <p className="text-sm text-neutral-200 font-medium">
-                {activeBook ? (
-                  <>
-                    คืนนี้เวลา <span className="text-white font-mono font-semibold">{schedule.reminderTime} น.</span> คอนเซียร์จจะส่งข้อความแจ้งเตือนเล่ม <span className="text-neutral-100 font-semibold underline decoration-neutral-600 decoration-1 underline-offset-2">"{activeBook.title}"</span> ({schedule.targetPagesPerDay} หน้า) เข้า LINE ของคุณ
-                  </>
-                ) : (
-                  'เลือกหนังสือเล่มแรกจากกองดองเพื่อเปิดระบบเตือนอ่านอัตโนมัติ'
-                )}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <button
-              id="hero-test-line-alert-btn"
-              onClick={onOpenLineSimulator}
-              className="flex-1 md:flex-none inline-flex items-center justify-center space-x-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold tracking-wide transition shadow-sm cursor-pointer"
-            >
-              <Bell className="w-3.5 h-3.5" />
-              <span>ทดสอบแจ้งเตือน LINE</span>
-            </button>
-            <button
-              id="hero-concierge-chat-btn"
-              onClick={onOpenConcierge}
-              className="flex-1 md:flex-none inline-flex items-center justify-center space-x-1.5 px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-medium border border-neutral-700 transition cursor-pointer"
-            >
-              <span>ปรึกษา Concierge</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
         {/* Core HUD Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           
@@ -227,10 +180,14 @@ export const TsundokuHero: React.FC<TsundokuHeroProps> = ({
             </div>
 
             {/* 4. Reading Streak */}
-            <div className="bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800 rounded-2xl p-4 flex flex-col justify-between hover:border-neutral-700 transition">
+            <div 
+              onClick={onViewCharts}
+              className="bg-gradient-to-b from-neutral-900 to-neutral-950 border border-neutral-800 rounded-2xl p-4 flex flex-col justify-between hover:border-emerald-500/50 hover:shadow-lg transition cursor-pointer group"
+              title="คลิกเพื่อดูกราฟวิเคราะห์การอ่าน 30 วัน"
+            >
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-medium text-neutral-400">Streak</span>
-                <Flame className="w-3.5 h-3.5 text-amber-400" />
+                <Flame className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition" />
               </div>
               <div className="my-2">
                 <div className="text-2xl sm:text-3xl font-black font-mono text-amber-400 flex items-center space-x-1">
@@ -239,13 +196,14 @@ export const TsundokuHero: React.FC<TsundokuHeroProps> = ({
                 </div>
                 <div className="text-[11px] text-neutral-400">ความต่อเนื่อง</div>
               </div>
-              <div className="text-[10px] text-neutral-500">
-                สถิติสูงสุด: 14 วัน
+              <div className="text-[10px] text-emerald-400 flex items-center space-x-1">
+                <TrendingUp className="w-3 h-3" />
+                <span>ดูกราฟการอ่าน 30 วัน</span>
               </div>
             </div>
 
             {/* Bottom summary bar spanning across full 4 columns on mobile/tablet */}
-            <div className="col-span-2 sm:col-span-4 bg-neutral-900/60 border border-neutral-800 rounded-xl p-3 flex items-center justify-between">
+            <div className="col-span-2 sm:col-span-4 bg-neutral-900/60 border border-neutral-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center space-x-3 text-xs">
                 <div className="text-neutral-400">
                   สะสมทั้งหมด: <span className="text-white font-mono font-bold">{totalPagesRead.toLocaleString()}</span> / {totalBookPages.toLocaleString()} หน้า
@@ -255,13 +213,33 @@ export const TsundokuHero: React.FC<TsundokuHeroProps> = ({
                   แจ้งเตือน LINE: <span className="text-neutral-200 font-medium">จันทร์, พุธ, ศุกร์, อาทิตย์</span>
                 </div>
               </div>
-              <button
-                id="hero-quick-log-btn"
-                onClick={onQuickLog}
-                className="text-xs text-neutral-200 hover:text-white font-medium underline underline-offset-4 decoration-neutral-600 hover:decoration-white transition cursor-pointer"
-              >
-                + บันทึกหน้าอ่านทันที
-              </button>
+              <div className="flex items-center space-x-3">
+                {onViewCharts && (
+                  <button
+                    id="hero-view-charts-btn"
+                    onClick={onViewCharts}
+                    className="text-xs text-emerald-400 hover:text-emerald-300 font-medium flex items-center space-x-1 transition cursor-pointer"
+                  >
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    <span>ข้อมูลกราฟการอ่าน</span>
+                  </button>
+                )}
+                <button
+                  id="hero-test-line-alert-btn"
+                  onClick={onOpenLineSimulator}
+                  className="text-xs text-neutral-300 hover:text-white font-medium flex items-center space-x-1 transition cursor-pointer"
+                >
+                  <Bell className="w-3 h-3 text-emerald-400" />
+                  <span>ทดสอบ LINE</span>
+                </button>
+                <button
+                  id="hero-quick-log-btn"
+                  onClick={onQuickLog}
+                  className="text-xs text-neutral-200 hover:text-white font-medium underline underline-offset-4 decoration-neutral-600 hover:decoration-white transition cursor-pointer"
+                >
+                  + บันทึกหน้าอ่าน
+                </button>
+              </div>
             </div>
 
           </div>

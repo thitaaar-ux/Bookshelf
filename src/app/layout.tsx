@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'TSUNDOKU',
-  description: 'ระบบจัดการการอ่านและทลายกองดอง (Tsundoku) พร้อมระบบแจ้งเตือนอัจฉริยะผ่าน LINE Webhook, LIFF, Rich Menu, Stripe และ Virtual Concierge',
+  description: 'ระบบจัดการการอ่านและทลายกองดอง (Tsundoku Killer) พร้อมระบบแจ้งเตือนและบันทึกหน้าอ่านผ่าน LINE Messaging API Webhook',
 };
 
 export default function RootLayout({
