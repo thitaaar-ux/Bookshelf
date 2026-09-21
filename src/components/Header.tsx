@@ -1,9 +1,9 @@
 import React from 'react';
-import { BookOpen, Bell, MessageSquare, Calendar, ShieldCheck } from 'lucide-react';
+import { BookOpen, Bell, MessageSquare, Calendar, ShieldCheck, TrendingUp } from 'lucide-react';
 
 interface HeaderProps {
-  activeTab?: 'dashboard' | 'library' | 'architecture';
-  setActiveTab: (tab: 'dashboard' | 'library' | 'architecture') => void;
+  activeTab?: 'dashboard' | 'charts' | 'library' | 'architecture';
+  setActiveTab: (tab: 'dashboard' | 'charts' | 'library' | 'architecture') => void;
   onOpenLineSimulator: () => void;
   onOpenScheduler: () => void;
   onOpenBackoffice?: () => void;
@@ -28,13 +28,47 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-16">
           
           {/* Brand & Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-700 flex items-center justify-center text-white shadow-inner">
-              <BookOpen className="w-5 h-5 text-neutral-100" />
-            </div>
-            <span className="font-extrabold tracking-wider text-base uppercase text-neutral-100 whitespace-nowrap">
-              TSUNDOKU
-            </span>
+          <div className="flex items-center space-x-6">
+            <button
+              onClick={() => setActiveTab('dashboard')}
+              className="flex items-center space-x-3 text-left cursor-pointer group"
+            >
+              <div className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-700 flex items-center justify-center text-white shadow-inner group-hover:border-neutral-500 transition">
+                <BookOpen className="w-5 h-5 text-neutral-100" />
+              </div>
+              <span className="font-extrabold tracking-wider text-base uppercase text-neutral-100 whitespace-nowrap">
+                TSUNDOKU
+              </span>
+            </button>
+
+            {/* Main Nav Tabs */}
+            <nav className="hidden sm:flex items-center space-x-1 bg-neutral-900/90 border border-neutral-800 rounded-xl p-1">
+              <button
+                id="header-nav-charts"
+                onClick={() => setActiveTab('charts')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center space-x-1.5 ${
+                  activeTab === 'charts'
+                    ? 'bg-emerald-950/70 border border-emerald-500/50 text-emerald-300 shadow-sm'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <span>ข้อมูลกราฟการอ่าน</span>
+              </button>
+
+              <button
+                id="header-nav-library"
+                onClick={() => setActiveTab('library')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer flex items-center space-x-1.5 ${
+                  activeTab === 'library'
+                    ? 'bg-neutral-800 text-white shadow-sm border border-neutral-700/60'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>คลังหนังสือ & กองดอง</span>
+              </button>
+            </nav>
           </div>
 
           {/* Right Action Bar */}

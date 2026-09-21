@@ -18,7 +18,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   BookOpen, Plus, Bell, Calendar, 
-  CheckCircle2, Flame, ArrowRight, ShieldCheck, Cpu 
+  CheckCircle2, Flame, ArrowRight, ShieldCheck, Cpu,
+  TrendingUp, Layers
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -61,7 +62,7 @@ export default function ReaderDashboard() {
   });
 
   const [currentTheme, setCurrentTheme] = useState('theme-obsidian');
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'library' | 'architecture'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'charts' | 'library' | 'architecture'>('charts');
 
   // Modals state
   const [isLineSimulatorOpen, setIsLineSimulatorOpen] = useState(false);
@@ -178,23 +179,51 @@ export default function ReaderDashboard() {
         schedule={schedule}
         onOpenLineSimulator={() => setIsLineSimulatorOpen(true)}
         onQuickLog={() => setIsQuickLogModalOpen(true)}
+        onViewCharts={() => setActiveTab('charts')}
       />
 
       {/* 3. Core Workspace & Library */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
-        {/* Section title & Quick guide */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-neutral-800/80 mb-6 gap-3">
-          <div>
-            <h1 className="text-xl font-black tracking-tight text-white flex items-center space-x-2">
-              <span>คลังหนังสือ &amp; กองดอง (Tsundoku Library)</span>
-              <span className="text-xs font-mono font-normal px-2 py-0.5 rounded bg-neutral-900 border border-neutral-700 text-neutral-400">
-                {books.length} เล่มในระบบ
-              </span>
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1">
-              จัดการความคืบหน้าแบบเรียลไทม์ เชื่อมโยงสถานะไปยัง LINE Messaging Webhook
-            </p>
+        {/* View Mode Navigation Tabs */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-neutral-800 gap-4 mb-6">
+          <div className="inline-flex rounded-2xl bg-neutral-900/90 border border-neutral-800 p-1.5 shadow-inner">
+            <button
+              id="main-tab-charts"
+              onClick={() => setActiveTab('charts')}
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
+                activeTab === 'charts'
+                  ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 shadow-md'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
+              <span>ข้อมูลกราฟการอ่าน (Reading Charts)</span>
+            </button>
+            <button
+              id="main-tab-library"
+              onClick={() => setActiveTab('library')}
+              className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
+                activeTab === 'library'
+                  ? 'bg-neutral-800 text-white shadow-md border border-neutral-700/60'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <BookOpen className="w-4 h-4 text-sky-400" />
+              <span>คลังหนังสือ &amp; กองดอง ({books.length})</span>
+            </button>
+            <button
+              id="main-tab-dashboard"
+              onClick={() => setActiveTab('dashboard')}
+              className={`hidden md:flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer ${
+                activeTab === 'dashboard'
+                  ? 'bg-neutral-800 text-white shadow-md border border-neutral-700/60'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Layers className="w-4 h-4 text-purple-400" />
+              <span>แสดงทั้งหมด</span>
+            </button>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -217,25 +246,78 @@ export default function ReaderDashboard() {
           </div>
         </div>
 
-        {/* Book Management Component */}
-        <BookManagement
-          books={books}
-          activeBookId={schedule.activeBookId}
-          onUpdateBook={handleUpdateBook}
-          onAddBook={handleAddBook}
-          onDeleteBook={handleDeleteBook}
-          onSetActiveBook={handleSetActiveBook}
-          onQuickLogPages={handleQuickLogPages}
-        />
+        {/* View 1: Charts as Primary Focus */}
+        {activeTab === 'charts' && (
+          <div className="space-y-8 animate-fadeIn">
+            {/* 30-Day Reading Velocity Chart */}
+            <ReadingProgressChart
+              logs={readingLogs}
+              books={books}
+              schedule={schedule}
+            />
 
-        {/* 30-Day Reading Velocity Chart (Recharts) */}
-        <div className="mt-12">
-          <ReadingProgressChart
-            logs={readingLogs}
-            books={books}
-            schedule={schedule}
-          />
-        </div>
+            {/* Quick Link & Preview to Books */}
+            <div className="p-5 rounded-2xl bg-neutral-900/70 border border-neutral-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h4 className="text-sm font-bold text-white flex items-center space-x-2">
+                  <BookOpen className="w-4 h-4 text-sky-400" />
+                  <span>ต้องการอัปเดตหน้าหนังสือ หรือจัดการกองดอง?</span>
+                </h4>
+                <p className="text-xs text-neutral-400 mt-1">
+                  มีหนังสือทั้งหมด {books.length} เล่ม ({books.filter(b => b.status === 'reading').length} กำลังอ่าน, {books.filter(b => b.status === 'backlog').length} กองดอง)
+                </p>
+              </div>
+              <button
+                id="charts-to-library-btn"
+                onClick={() => setActiveTab('library')}
+                className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-xs font-semibold text-white border border-neutral-700 transition cursor-pointer shrink-0"
+              >
+                <span>เปิดคลังหนังสือ (Manage Books)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* View 2: Library as Primary Focus */}
+        {activeTab === 'library' && (
+          <div className="space-y-8 animate-fadeIn">
+            <BookManagement
+              books={books}
+              activeBookId={schedule.activeBookId}
+              onUpdateBook={handleUpdateBook}
+              onAddBook={handleAddBook}
+              onDeleteBook={handleDeleteBook}
+              onSetActiveBook={handleSetActiveBook}
+              onQuickLogPages={handleQuickLogPages}
+            />
+          </div>
+        )}
+
+        {/* View 3: All-in-One Dashboard */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-12 animate-fadeIn">
+            {/* Reading Progress Chart */}
+            <ReadingProgressChart
+              logs={readingLogs}
+              books={books}
+              schedule={schedule}
+            />
+
+            {/* Book Management Component */}
+            <div className="pt-6 border-t border-neutral-800">
+              <BookManagement
+                books={books}
+                activeBookId={schedule.activeBookId}
+                onUpdateBook={handleUpdateBook}
+                onAddBook={handleAddBook}
+                onDeleteBook={handleDeleteBook}
+                onSetActiveBook={handleSetActiveBook}
+                onQuickLogPages={handleQuickLogPages}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Reading History & Quick Analytics Feed */}
         <div className="mt-12 pt-8 border-t border-neutral-800">
