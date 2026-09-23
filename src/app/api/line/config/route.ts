@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { getLineConfigFromDb, saveLineConfigToDb, getAllAppSettingsFromDb } from '@/src/lib/db';
 
 export async function GET() {
-  const currentConfig = getLineConfigFromDb();
-  const dbRows = getAllAppSettingsFromDb();
+  const currentConfig = await getLineConfigFromDb();
+  const dbRows = await getAllAppSettingsFromDb();
 
   return NextResponse.json({
     hasToken: Boolean(currentConfig.channelAccessToken),
@@ -16,8 +16,8 @@ export async function GET() {
     targetUserId: currentConfig.targetUserId || 'U9330ea2a3097a7e8ea7b81a9eeb82088',
     enabled: currentConfig.enabled,
     reminderDaysAhead: currentConfig.reminderDaysAhead,
-    storageType: 'SQLite Database (Table: app_settings)',
-    dbFile: 'data/tsundoku.db',
+    storageType: 'PostgreSQL Database (Table: app_settings)',
+    dbFile: 'postgresql://.../bookshelf',
     dbRows: dbRows
   });
 }
@@ -50,11 +50,11 @@ export async function POST(req: Request) {
     if (enabled !== undefined) updates.enabled = Boolean(enabled);
     if (reminderDaysAhead !== undefined) updates.reminderDaysAhead = Number(reminderDaysAhead);
 
-    const savedConfig = saveLineConfigToDb(updates);
+    const savedConfig = await saveLineConfigToDb(updates);
 
     return NextResponse.json({ 
       success: true, 
-      message: 'บันทึกลง SQLite Database (Table: app_settings ใน data/tsundoku.db) สำเร็จแล้ว',
+      message: 'บันทึกลง PostgreSQL Database (Table: app_settings) สำเร็จแล้ว',
       config: savedConfig
     });
   } catch (err: any) {

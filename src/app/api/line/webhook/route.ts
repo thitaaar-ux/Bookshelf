@@ -61,7 +61,7 @@ export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
     const signature = req.headers.get('x-line-signature');
-    const dbConfig = getLineConfigFromDb();
+    const dbConfig = await getLineConfigFromDb();
     const channelSecret = dbConfig.channelSecret || lineConfig.channelSecret || process.env.LINE_CHANNEL_SECRET;
 
     // Verify HMAC-SHA256 signature if configured

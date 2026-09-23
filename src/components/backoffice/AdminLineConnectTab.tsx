@@ -23,8 +23,8 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
   const [userId, setUserId] = useState('U9330ea2a3097a7e8ea7b81a9eeb82088');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [reminderDaysAhead, setReminderDaysAhead] = useState(1);
-  const [storageType, setStorageType] = useState('SQLite Database (Table: app_settings)');
-  const [dbFile, setDbFile] = useState('data/tsundoku.db');
+  const [storageType, setStorageType] = useState('PostgreSQL Database (Table: app_settings)');
+  const [dbFile, setDbFile] = useState('postgresql://.../bookshelf');
   const [dbRows, setDbRows] = useState<Array<{ key: string; value: string; updated_at: string }>>([]);
   const [showDbInspector, setShowDbInspector] = useState(false);
 
@@ -134,7 +134,7 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
         if (channelAccessToken.trim()) setHasToken(true);
         if (channelSecret.trim()) setHasSecret(true);
         setHasTarget(Boolean(userId.trim()));
-        setActionFeedback('บันทึกการตั้งค่า LINE ลง Database (data/db.json) สำเร็จแล้ว!');
+        setActionFeedback('บันทึกการตั้งค่า LINE ลง PostgreSQL สำเร็จแล้ว!');
         onShowToast?.('บันทึกข้อมูลลง Database เรียบร้อย');
       }
     } catch {
@@ -198,7 +198,7 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
             </span>
           </div>
           <p className="text-xs text-neutral-400 mt-1">
-            ตั้งค่า LINE Official Account จัดเก็บข้อมูลลงฐานข้อมูล <code className="text-emerald-400 font-mono">data/db.json</code> ถาวร แก้ไขได้ทันทีไม่ต้องรีสตาร์ทเซิร์ฟเวอร์
+            ตั้งค่า LINE Official Account จัดเก็บข้อมูลลงฐานข้อมูล <code className="text-emerald-400 font-mono">PostgreSQL / app_settings</code> ถาวร แก้ไขได้ทันทีไม่ต้องรีสตาร์ทเซิร์ฟเวอร์
           </p>
         </div>
 
@@ -278,18 +278,18 @@ export const AdminLineConnectTab: React.FC<AdminLineConnectTabProps> = ({ onShow
           <div className="flex items-center space-x-1.5">
             <Database className="w-3.5 h-3.5 text-sky-400" />
             <span className="text-neutral-400">ฐานข้อมูล:</span>
-            <span className="text-sky-300 font-mono text-[11px]">SQLite ({dbFile})</span>
+            <span className="text-sky-300 font-mono text-[11px]">PostgreSQL ({dbFile})</span>
           </div>
         </div>
       </div>
 
-      {/* SQLite Database Table Viewer */}
+      {/* PostgreSQL Database Table Viewer */}
       <div className="p-4 rounded-2xl bg-neutral-900/80 border border-neutral-800 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Database className="w-4 h-4 text-emerald-400" />
             <span className="text-xs font-bold text-white">
-              SQLite Table: <span className="text-emerald-400 font-mono">app_settings</span>
+              PostgreSQL Table: <span className="text-emerald-400 font-mono">app_settings</span>
             </span>
             <span className="text-[10px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-300 font-mono">
               {dbRows.length} แถวใน DB

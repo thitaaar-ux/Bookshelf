@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
-import { lineConfig, stripeConfig } from '@/src/lib/serverState';
+import { hydrateLineConfig, stripeConfig } from '@/src/lib/serverState';
 
 export async function GET() {
+  const lineConfig = await hydrateLineConfig();
   const lineConfigured = Boolean(
     (lineConfig.channelSecret || process.env.LINE_CHANNEL_SECRET) &&
     (lineConfig.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN)

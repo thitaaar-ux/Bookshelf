@@ -64,14 +64,23 @@ if (!globalThis.__tsundokuLogs) {
       source: 'real_line_webhook',
       eventType: 'system_boot',
       userId: 'U9330ea2a3097a7e8ea7b81a9eeb82088',
-      payload: { status: 'Next.js App Router API active', db: 'data/db.json' },
-      botReply: 'ระบบ TSUNDOKU Next.js พร้อมทำงาน (เชื่อมต่อกับ Database สำเร็จ)',
+      payload: { status: 'Next.js App Router API active', db: 'PostgreSQL' },
+      botReply: 'ระบบ TSUNDOKU Next.js พร้อมทำงาน (เชื่อมต่อกับ PostgreSQL สำเร็จ)',
     }
   ];
 }
 
 if (!globalThis.__tsundokuLineConfig) {
-  globalThis.__tsundokuLineConfig = getLineConfigFromDb();
+  globalThis.__tsundokuLineConfig = {
+    botName: process.env.LINE_BOT_NAME || 'Bunnarak',
+    botBasicId: process.env.LINE_BOT_ID || '@869uobem',
+    channelId: process.env.LINE_CHANNEL_ID || '2011678531',
+    channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || '',
+    channelSecret: process.env.LINE_CHANNEL_SECRET || '',
+    targetUserId: process.env.LINE_TARGET_USER_ID || 'U9330ea2a3097a7e8ea7b81a9eeb82088',
+    enabled: true,
+    reminderDaysAhead: 1,
+  };
 }
 
 if (!globalThis.__tsundokuStripeConfig) {
@@ -136,11 +145,18 @@ export function saveSubscription(item: SubscriptionItem) {
   }
 }
 
-export function updateLineConfig(updates: Partial<LineRuntimeConfig>): LineRuntimeConfig {
-  const updated = saveLineConfigToDb(updates);
+export async function hydrateLineConfig(): Promise<LineRuntimeConfig> {
+  const latest = await getLineConfigFromDb();
+  if (lineConfig) {
+    Object.assign(lineConfig, latest);
+  }
+  return lineConfig!;
+}
+
+export async function updateLineConfig(updates: Partial<LineRuntimeConfig>): Promise<LineRuntimeConfig> {
+  const updated = await saveLineConfigToDb(updates);
   if (lineConfig) {
     Object.assign(lineConfig, updated);
   }
   return lineConfig!;
 }
-

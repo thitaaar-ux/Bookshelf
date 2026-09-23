@@ -6,7 +6,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { userId, isExample } = body;
-    const dbLineConfig = getLineConfigFromDb();
+    const dbLineConfig = await getLineConfigFromDb();
     const targetId = userId || dbLineConfig.targetUserId;
     const token = dbLineConfig.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN;
 
