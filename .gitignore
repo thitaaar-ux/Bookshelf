@@ -25,7 +25,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# SQLite runtime sidecars
+# Local database/runtime files
+data/*.json
+*.db
 *.db-shm
 *.db-wal
 
