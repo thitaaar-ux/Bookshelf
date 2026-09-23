@@ -1,6 +1,18 @@
 import { NextResponse } from 'next/server';
 import { getLineConfigFromDb, saveLineConfigToDb, getAllAppSettingsFromDb } from '@/src/lib/db';
 
+const SENSITIVE_SETTING_KEYS = ['secret', 'token'];
+
+function isSensitiveSetting(key: string) {
+  return SENSITIVE_SETTING_KEYS.some((needle) => key.toLowerCase().includes(needle));
+}
+
+function maskSettingValue(key: string, value: string) {
+  if (!isSensitiveSetting(key)) return value;
+  if (!value) return '';
+  return '********';
+}
+
 export async function GET() {
   const currentConfig = await getLineConfigFromDb();
   const dbRows = await getAllAppSettingsFromDb();
@@ -11,14 +23,17 @@ export async function GET() {
     botName: currentConfig.botName || 'Bunnarak',
     botBasicId: currentConfig.botBasicId || '@869uobem',
     channelId: currentConfig.channelId || '2011678531',
-    channelAccessToken: currentConfig.channelAccessToken || '',
-    channelSecret: currentConfig.channelSecret || '',
+    channelAccessToken: '',
+    channelSecret: '',
     targetUserId: currentConfig.targetUserId || 'U9330ea2a3097a7e8ea7b81a9eeb82088',
     enabled: currentConfig.enabled,
     reminderDaysAhead: currentConfig.reminderDaysAhead,
     storageType: 'PostgreSQL Database (Table: app_settings)',
     dbFile: 'postgresql://.../bookshelf',
-    dbRows: dbRows
+    dbRows: dbRows.map((row) => ({
+      ...row,
+      value: maskSettingValue(row.key, row.value),
+    })),
   });
 }
 
@@ -50,12 +65,16 @@ export async function POST(req: Request) {
     if (enabled !== undefined) updates.enabled = Boolean(enabled);
     if (reminderDaysAhead !== undefined) updates.reminderDaysAhead = Number(reminderDaysAhead);
 
-    const savedConfig = await saveLineConfigToDb(updates);
+    await saveLineConfigToDb(updates);
 
     return NextResponse.json({ 
       success: true, 
       message: 'บันทึกลง PostgreSQL Database (Table: app_settings) สำเร็จแล้ว',
-      config: savedConfig
+      config: {
+        ...updates,
+        channelAccessToken: updates.channelAccessToken ? '********' : undefined,
+        channelSecret: updates.channelSecret ? '********' : undefined,
+      },
     });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message }, { status: 400 });
