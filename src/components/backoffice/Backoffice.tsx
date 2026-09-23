@@ -12,6 +12,7 @@ import { AdminBooksTab } from './AdminBooksTab';
 import { AdminBroadcastTab } from './AdminBroadcastTab';
 import { AdminSettingsTab } from './AdminSettingsTab';
 import { AdminStripeTab } from './AdminStripeTab';
+import { AdminDatabaseTab } from './AdminDatabaseTab';
 
 interface BackofficeProps {
   books?: Book[];
@@ -151,6 +152,10 @@ export const Backoffice: React.FC<BackofficeProps> = ({
           onNavigateTab={setCurrentTab}
           serverStatus={serverStatus}
         />
+      )}
+
+      {currentTab === 'database' && (
+        <AdminDatabaseTab onShowToast={showToast} />
       )}
 
       {currentTab === 'line_connect' && (

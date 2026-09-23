@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { lineConfig, addWebhookLog, WebhookLogItem } from '@/src/lib/serverState';
-import { getLineConfigFromDb } from '@/src/lib/db';
+import { lineConfig, addWebhookLog, WebhookLogItem } from '@/lib/serverState';
 
 function processLineEvent(event: any): { logEntry: WebhookLogItem; botReply: string } {
   const userId = event.source?.userId || 'U_guest_preview';
@@ -61,8 +60,7 @@ export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
     const signature = req.headers.get('x-line-signature');
-    const dbConfig = await getLineConfigFromDb();
-    const channelSecret = dbConfig.channelSecret || lineConfig.channelSecret || process.env.LINE_CHANNEL_SECRET;
+    const channelSecret = lineConfig.channelSecret || process.env.LINE_CHANNEL_SECRET;
 
     // Verify HMAC-SHA256 signature if configured
     if (channelSecret && signature) {
@@ -90,7 +88,7 @@ export async function POST(req: Request) {
 
       const { botReply } = processLineEvent(event);
 
-      const accessToken = dbConfig.channelAccessToken || lineConfig.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN;
+      const accessToken = lineConfig.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN;
       if (accessToken && event.replyToken && botReply) {
         try {
           await fetch('https://api.line.me/v2/bot/message/reply', {

@@ -4,16 +4,12 @@ import React, { useState, useMemo } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
-  Target, 
-  CheckCircle2, 
-  Flame, 
-  BookOpen, 
-  ArrowUpRight,
   Table as TableIcon,
   Search,
-  Sparkles,
-  ChevronRight,
-  Info
+  BookOpen,
+  Calendar,
+  Layers,
+  Sparkles
 } from 'lucide-react';
 import { Book, ReadingLog, UserSchedule } from '../types';
 
@@ -28,8 +24,8 @@ type ChartViewType = 'daily' | 'cumulative';
 
 interface DayDataPoint {
   dateKey: string; // YYYY-MM-DD
-  displayDate: string; // e.g. 18 ก.ย.
-  dayOfWeek: string; // จ., อ., ...
+  displayDate: string; // e.g. 18 Sep
+  dayOfWeek: string;
   pages: number;
   cumulativePages: number;
   target: number;
@@ -48,12 +44,11 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
   const [tableSearchTerm, setTableSearchTerm] = useState<string>('');
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  // Generate 30 days continuous data ending at today (or latest log date)
+  // Generate continuous 30-day data
   const chartData = useMemo(() => {
     const days: DayDataPoint[] = [];
     const now = new Date();
 
-    // Check if logs exist and have later dates (e.g., demo year 2026)
     let referenceDate = now;
     if (logs && logs.length > 0) {
       const dates = logs
@@ -73,12 +68,10 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
       }
     }
 
-    // Filter logs if a specific book is selected
     const activeLogs = selectedBookFilter === 'all' 
       ? (logs || []) 
       : (logs || []).filter(l => l.bookId === selectedBookFilter);
 
-    // Map logs by YYYY-MM-DD safely
     const logsByDate = new Map<string, ReadingLog[]>();
     activeLogs.forEach(log => {
       try {
@@ -89,154 +82,104 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
         }
         logsByDate.get(cleanStr)!.push(log);
       } catch {
-        // ignore parsing errors
+        // ignore
       }
     });
 
-    const thaiDayNames = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
-    const thaiMonthNames = [
-      'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
-      'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+    const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const monthNames = [
+      'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
     ];
 
     let runningTotal = 0;
     const target = schedule?.targetPagesPerDay || 20;
 
-    // Build the 30-day continuous series (from 29 days ago to referenceDate)
     for (let i = 29; i >= 0; i--) {
       const d = new Date(referenceDate);
       d.setDate(referenceDate.getDate() - i);
-      
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const dateKey = `${year}-${month}-${day}`;
-      
+      const dateKey = d.toISOString().split('T')[0];
       const dayLogs = logsByDate.get(dateKey) || [];
-      const dayPages = dayLogs.reduce((sum, item) => sum + (Number(item.pagesRead) || 0), 0);
-      
-      runningTotal += dayPages;
 
-      const booksBreakdown: { title: string; emoji: string; pages: number }[] = [];
-      dayLogs.forEach(item => {
-        const b = books.find(x => x.id === item.bookId);
-        booksBreakdown.push({
-          title: item.bookTitle || b?.title || 'หนังสือ',
+      const pages = dayLogs.reduce((acc, l) => acc + (Number(l.pagesRead) || 0), 0);
+      runningTotal += pages;
+
+      const booksRead = dayLogs.map(l => {
+        const b = books.find(item => item.id === l.bookId);
+        return {
+          title: l.bookTitle || b?.title || 'Unknown Volume',
           emoji: b?.coverEmoji || '📖',
-          pages: item.pagesRead || 0
-        });
+          pages: l.pagesRead
+        };
       });
-
-      const dayDisplay = `${d.getDate()} ${thaiMonthNames[d.getMonth()]}`;
-      const dayOfWeekStr = thaiDayNames[d.getDay()];
 
       days.push({
         dateKey,
-        displayDate: dayDisplay,
-        dayOfWeek: dayOfWeekStr,
-        pages: dayPages,
+        displayDate: `${d.getDate()} ${monthNames[d.getMonth()]}`,
+        dayOfWeek: dayNames[d.getDay()],
+        pages,
         cumulativePages: runningTotal,
         target,
-        isGoalMet: dayPages >= target,
-        booksRead: booksBreakdown
+        isGoalMet: pages >= target,
+        booksRead
       });
     }
 
     return days;
-  }, [logs, books, schedule?.targetPagesPerDay, selectedBookFilter]);
+  }, [logs, books, schedule, selectedBookFilter]);
 
-  // Aggregate 30-day KPI statistics
-  const stats = useMemo(() => {
-    const target = schedule?.targetPagesPerDay || 20;
-    const totalPages = chartData.reduce((acc, d) => acc + d.pages, 0);
-    const activeDays = chartData.filter(d => d.pages > 0).length;
-    const goalMetDays = chartData.filter(d => d.pages >= target).length;
-    const dailyAverage = (totalPages / 30).toFixed(1);
-    const bestDay = chartData.reduce((max, d) => d.pages > max.pages ? d : max, chartData[0] || { pages: 0, displayDate: '-' });
+  // Aggregate stats
+  const totalPagesInPeriod = useMemo(() => {
+    return chartData.reduce((sum, d) => sum + d.pages, 0);
+  }, [chartData]);
 
-    return {
-      totalPages,
-      activeDays,
-      goalMetDays,
-      dailyAverage,
-      bestDayPages: bestDay?.pages || 0,
-      bestDayDate: bestDay?.displayDate || '-',
-      consistencyRate: Math.round((activeDays / 30) * 100)
-    };
-  }, [chartData, schedule?.targetPagesPerDay]);
+  const averageDailyPages = useMemo(() => {
+    return Math.round((totalPagesInPeriod / 30) * 10) / 10;
+  }, [totalPagesInPeriod]);
 
-  // Filtered table rows (sorted latest day first for easy review)
-  const tableRows = useMemo(() => {
-    const reversed = [...chartData].reverse();
-    if (!tableSearchTerm.trim()) return reversed;
-    const term = tableSearchTerm.toLowerCase();
-    return reversed.filter(d => 
-      d.displayDate.toLowerCase().includes(term) ||
-      d.dateKey.includes(term) ||
-      d.dayOfWeek.toLowerCase().includes(term) ||
-      d.booksRead.some(b => b.title.toLowerCase().includes(term))
-    );
-  }, [chartData, tableSearchTerm]);
+  const daysGoalMet = useMemo(() => {
+    return chartData.filter(d => d.isGoalMet).length;
+  }, [chartData]);
 
-  // SVG Geometry Calculations
-  const svgWidth = 860;
-  const svgHeight = 280;
+  const maxDailyPages = useMemo(() => {
+    return Math.max(...chartData.map(d => d.pages), 1);
+  }, [chartData]);
+
+  const maxCumulative = useMemo(() => {
+    return Math.max(...chartData.map(d => d.cumulativePages), 1);
+  }, [chartData]);
+
+  // SVG dimensions
+  const svgWidth = 900;
+  const svgHeight = 220;
   const paddingLeft = 45;
   const paddingRight = 20;
   const paddingTop = 25;
-  const paddingBottom = 40;
+  const paddingBottom = 35;
+
   const chartPlotWidth = svgWidth - paddingLeft - paddingRight;
   const chartPlotHeight = svgHeight - paddingTop - paddingBottom;
 
-  // Max value calculation for Y-Axis scale
-  const maxValDaily = useMemo(() => {
-    const maxPage = Math.max(...chartData.map(d => d.pages), schedule?.targetPagesPerDay || 20);
-    return Math.ceil((maxPage + 5) / 10) * 10;
-  }, [chartData, schedule?.targetPagesPerDay]);
+  const currentMaxY = viewType === 'daily' 
+    ? Math.max(maxDailyPages * 1.15, (schedule?.targetPagesPerDay || 20) * 1.25)
+    : maxCumulative * 1.1;
 
-  const maxValCumulative = useMemo(() => {
-    const maxPage = Math.max(...chartData.map(d => d.cumulativePages), 50);
-    return Math.ceil((maxPage + 20) / 50) * 50;
-  }, [chartData]);
-
-  const currentMaxY = viewType === 'daily' ? maxValDaily : maxValCumulative;
-
-  // Target Y Coordinate for Daily view
-  const targetY = useMemo(() => {
-    if (viewType !== 'daily' || currentMaxY <= 0) return null;
-    const target = schedule?.targetPagesPerDay || 20;
-    const ratio = target / currentMaxY;
-    return paddingTop + chartPlotHeight * (1 - ratio);
-  }, [viewType, currentMaxY, schedule?.targetPagesPerDay, chartPlotHeight]);
-
-  // Coordinates for each day point in SVG
+  // Compute Coordinates for plotting
   const points = useMemo(() => {
-    const count = chartData.length;
-    const step = chartPlotWidth / count;
     return chartData.map((d, index) => {
-      const cx = paddingLeft + (index + 0.5) * step;
-      const barX = paddingLeft + index * step + step * 0.15;
-      const barWidth = Math.max(step * 0.7, 8);
-
       const val = viewType === 'daily' ? d.pages : d.cumulativePages;
-      const ratio = currentMaxY > 0 ? Math.min(val / currentMaxY, 1) : 0;
-      const cy = paddingTop + chartPlotHeight * (1 - ratio);
-      const barHeight = Math.max(chartPlotHeight * ratio, 2);
-
+      const x = paddingLeft + (index / (chartData.length - 1)) * chartPlotWidth;
+      const ratio = currentMaxY > 0 ? val / currentMaxY : 0;
+      const y = paddingTop + chartPlotHeight - ratio * chartPlotHeight;
       return {
         ...d,
-        index,
-        cx,
-        cy,
-        barX,
-        barWidth,
-        barY: cy,
-        barHeight
+        cx: x,
+        cy: y,
+        val
       };
     });
   }, [chartData, viewType, currentMaxY, chartPlotWidth, chartPlotHeight]);
 
-  // SVG Path for Cumulative Area & Trend Line
   const splinePath = useMemo(() => {
     if (points.length === 0) return '';
     let d = `M ${points[0].cx},${points[0].cy}`;
@@ -257,564 +200,308 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
     return `${splinePath} L ${last.cx},${bottomY} L ${first.cx},${bottomY} Z`;
   }, [splinePath, points, chartPlotHeight]);
 
-  // Currently active or hovered day
   const activeDay = hoveredIndex !== null ? points[hoveredIndex] : points[points.length - 1];
 
   return (
-    <section 
-      id="reading-progress-chart-section" 
-      aria-label="30-Day Reading Progress Visualization"
-      className="rounded-2xl bg-neutral-900/95 border border-neutral-800 p-5 sm:p-6 shadow-xl relative overflow-hidden"
-    >
-      {/* Background subtle glow */}
-      <div className="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
-
-      {/* Header Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-neutral-800/80 relative z-10">
+    <div id="reading-velocity-section" className="space-y-6">
+      
+      {/* Header and Controls Row */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b-2 border-[#121212]">
         <div>
-          <div className="flex items-center space-x-2.5">
-            <div className="w-9 h-9 rounded-xl bg-emerald-950/70 border border-emerald-600/40 flex items-center justify-center text-emerald-400 shadow-sm">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 id="chart-section-title" className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center space-x-2">
-                <span>ข้อมูลกราฟการอ่าน (Reading Analytics & 30-Day Velocity)</span>
-                <span className="text-[11px] font-mono font-normal px-2 py-0.5 rounded-full bg-emerald-950 border border-emerald-600/40 text-emerald-400">
-                  30 วันล่าสุด
-                </span>
-              </h2>
-              <p className="text-xs text-neutral-400 mt-0.5">
-                วิเคราะห์พฤติกรรมการอ่าน หน้าสะสม และอัตราการบรรลุเป้าหมายรายวัน
-              </p>
-            </div>
-          </div>
+          <span className="label">สถิติการอ่านย้อนหลัง 30 วัน</span>
+          <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-[#121212] tracking-tight">
+            ความเร็วและแนวโน้มการอ่าน
+          </h3>
         </div>
 
-        {/* View toggles & filters */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Book filter selector */}
-          <div className="flex items-center space-x-1.5 bg-neutral-950 border border-neutral-800 rounded-xl px-2.5 py-1.5 text-xs text-neutral-300">
-            <BookOpen className="w-3.5 h-3.5 text-neutral-400" />
+          {/* Book Filter */}
+          <div className="flex items-center gap-2 border-2 border-[#121212] bg-[#f8f7f4] px-3 py-1.5 text-xs">
+            <BookOpen className="w-3.5 h-3.5" />
             <select
-              id="chart-book-filter-select"
               value={selectedBookFilter}
               onChange={(e) => setSelectedBookFilter(e.target.value)}
-              className="bg-transparent text-xs text-white focus:outline-none cursor-pointer pr-1"
+              className="bg-transparent text-xs text-[#121212] focus:outline-none cursor-pointer font-mono uppercase"
             >
-              <option value="all" className="bg-neutral-900 text-white">ทุกเล่ม (All Books)</option>
+              <option value="all">ทุกเล่มในคลัง</option>
               {books.map(b => (
-                <option key={b.id} value={b.id} className="bg-neutral-900 text-white">
-                  {b.coverEmoji || '📖'} {b.title}
+                <option key={b.id} value={b.id}>
+                  {b.title}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Primary View Mode: Chart vs Table */}
-          <div className="inline-flex rounded-xl bg-neutral-950 p-1 border border-neutral-800 text-xs">
+          {/* Mode Switcher */}
+          <div className="flex border-2 border-[#121212] bg-[#f8f7f4] text-xs">
             <button
-              id="chart-mode-btn"
-              type="button"
               onClick={() => setMode('chart')}
-              className={`flex items-center space-x-1.5 px-3 py-1 rounded-lg font-medium transition cursor-pointer ${
-                mode === 'chart'
-                  ? 'bg-neutral-800 text-emerald-400 shadow-sm'
-                  : 'text-neutral-400 hover:text-neutral-200'
+              className={`px-3 py-1.5 font-mono uppercase font-bold cursor-pointer transition ${
+                mode === 'chart' 
+                  ? 'bg-[#121212] text-[#f8f7f4]' 
+                  : 'text-[#121212] hover:bg-[#121212]/10'
               }`}
             >
-              <BarChart3 className="w-3.5 h-3.5" />
-              <span>แผนภูมิ (Chart)</span>
+              กราฟ
             </button>
             <button
-              id="table-mode-btn"
-              type="button"
               onClick={() => setMode('table')}
-              className={`flex items-center space-x-1.5 px-3 py-1 rounded-lg font-medium transition cursor-pointer ${
-                mode === 'table'
-                  ? 'bg-neutral-800 text-emerald-400 shadow-sm'
-                  : 'text-neutral-400 hover:text-neutral-200'
+              className={`px-3 py-1.5 font-mono uppercase font-bold cursor-pointer transition border-l-2 border-[#121212] ${
+                mode === 'table' 
+                  ? 'bg-[#121212] text-[#f8f7f4]' 
+                  : 'text-[#121212] hover:bg-[#121212]/10'
               }`}
             >
-              <TableIcon className="w-3.5 h-3.5" />
-              <span>ตารางข้อมูล (Table)</span>
+              ตารางประวัติ
             </button>
           </div>
 
-          {/* If in chart mode: Daily vs Cumulative */}
+          {/* Daily vs Cumulative */}
           {mode === 'chart' && (
-            <div className="inline-flex rounded-xl bg-neutral-950 p-1 border border-neutral-800 text-xs">
+            <div className="flex border-2 border-[#121212] bg-[#f8f7f4] text-xs">
               <button
-                id="chart-toggle-daily-btn"
-                type="button"
                 onClick={() => setChartViewType('daily')}
-                className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg font-medium transition cursor-pointer ${
-                  viewType === 'daily'
-                    ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-300'
-                    : 'text-neutral-400 hover:text-neutral-200'
+                className={`px-3 py-1.5 font-mono uppercase font-bold cursor-pointer transition ${
+                  viewType === 'daily' 
+                    ? 'bg-[#121212] text-[#f8f7f4]' 
+                    : 'text-[#121212] hover:bg-[#121212]/10'
                 }`}
               >
-                <span>รายวัน</span>
+                รายวัน
               </button>
               <button
-                id="chart-toggle-cumulative-btn"
-                type="button"
                 onClick={() => setChartViewType('cumulative')}
-                className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg font-medium transition cursor-pointer ${
-                  viewType === 'cumulative'
-                    ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-300'
-                    : 'text-neutral-400 hover:text-neutral-200'
+                className={`px-3 py-1.5 font-mono uppercase font-bold cursor-pointer transition border-l-2 border-[#121212] ${
+                  viewType === 'cumulative' 
+                    ? 'bg-[#121212] text-[#f8f7f4]' 
+                    : 'text-[#121212] hover:bg-[#121212]/10'
                 }`}
               >
-                <span>สะสม 30 วัน</span>
+                ยอดสะสม
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* 30-Day Metrics Bento Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 my-5 relative z-10">
-        {/* Metric 1: Total Pages */}
-        <div id="chart-metric-total" className="p-3.5 rounded-xl bg-neutral-950/70 border border-neutral-800/80">
-          <div className="flex items-center justify-between text-neutral-400 text-xs mb-1">
-            <span>อ่านสะสม 30 วัน</span>
-            <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
-          </div>
-          <div className="flex items-baseline space-x-1.5">
-            <span className="text-2xl font-bold font-mono text-white">{stats.totalPages}</span>
-            <span className="text-xs text-neutral-400 font-sans">หน้า</span>
-          </div>
-          <p className="text-[11px] text-neutral-400 mt-1 flex items-center space-x-1">
-            <span className="text-emerald-400 font-medium">~{(stats.totalPages / 250).toFixed(1)} เล่ม</span>
-            <span>(ขนาดมาตรฐาน)</span>
-          </p>
-        </div>
-
-        {/* Metric 2: Daily Average */}
-        <div id="chart-metric-average" className="p-3.5 rounded-xl bg-neutral-950/70 border border-neutral-800/80">
-          <div className="flex items-center justify-between text-neutral-400 text-xs mb-1">
-            <span>เฉลี่ยรายวัน</span>
-            <Target className="w-3.5 h-3.5 text-sky-400" />
-          </div>
-          <div className="flex items-baseline space-x-1.5">
-            <span className="text-2xl font-bold font-mono text-white">{stats.dailyAverage}</span>
-            <span className="text-xs text-neutral-400 font-sans">หน้า/วัน</span>
-          </div>
-          <p className="text-[11px] text-neutral-400 mt-1">
-            เป้าหมายตั้งไว้ <span className="font-mono text-neutral-200">{schedule?.targetPagesPerDay || 20}</span> หน้า/วัน
-          </p>
-        </div>
-
-        {/* Metric 3: Best Day */}
-        <div id="chart-metric-best-day" className="p-3.5 rounded-xl bg-neutral-950/70 border border-neutral-800/80">
-          <div className="flex items-center justify-between text-neutral-400 text-xs mb-1">
-            <span>อ่านมากสุดใน 1 วัน</span>
-            <Flame className="w-3.5 h-3.5 text-amber-400" />
-          </div>
-          <div className="flex items-baseline space-x-1.5">
-            <span className="text-2xl font-bold font-mono text-white">{stats.bestDayPages}</span>
-            <span className="text-xs text-neutral-400 font-sans">หน้า</span>
-          </div>
-          <p className="text-[11px] text-neutral-400 mt-1 truncate">
-            วันที่ <span className="text-neutral-200 font-medium">{stats.bestDayDate}</span>
-          </p>
-        </div>
-
-        {/* Metric 4: Active Reading Days */}
-        <div id="chart-metric-consistency" className="p-3.5 rounded-xl bg-neutral-950/70 border border-neutral-800/80">
-          <div className="flex items-center justify-between text-neutral-400 text-xs mb-1">
-            <span>ความสม่ำเสมอ (30 วัน)</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-purple-400" />
-          </div>
-          <div className="flex items-baseline space-x-1.5">
-            <span className="text-2xl font-bold font-mono text-white">{stats.consistencyRate}%</span>
-            <span className="text-xs text-neutral-400 font-sans">({stats.activeDays}/30 วัน)</span>
-          </div>
-          <p className="text-[11px] text-neutral-400 mt-1">
-            ทะลุเป้าหมาย <span className="text-emerald-400 font-semibold font-mono">{stats.goalMetDays}</span> วัน
-          </p>
-        </div>
-      </div>
-
-      {/* Main Display: Interactive Vector SVG Chart OR Table */}
       {mode === 'chart' ? (
-        <div className="relative z-10 space-y-4">
-          {/* Active Hover / Inspect Card */}
-          {activeDay && (
-            <div 
-              id="chart-active-day-badge"
-              className="bg-neutral-950/80 border border-neutral-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 text-xs"
-            >
-              <div className="flex items-center space-x-2.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span className="text-white font-semibold">
-                  {activeDay.displayDate} ({activeDay.dayOfWeek})
-                </span>
-                <span className="text-neutral-400 font-mono">
-                  อ่าน: <strong className="text-emerald-400 text-sm font-bold font-mono">+{activeDay.pages}</strong> หน้า
-                </span>
-                <span className="text-neutral-400 font-mono hidden sm:inline">
-                  | สะสม 30 วัน: <strong className="text-neutral-200">{activeDay.cumulativePages}</strong> หน้า
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                {activeDay.pages >= activeDay.target ? (
-                  <span className="px-2 py-0.5 rounded-md bg-emerald-950 border border-emerald-500/40 text-emerald-300 font-medium text-[11px] flex items-center space-x-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    <span>ทะลุเป้าหมาย ({activeDay.target} หน้า)</span>
-                  </span>
-                ) : activeDay.pages > 0 ? (
-                  <span className="px-2 py-0.5 rounded-md bg-amber-950/60 border border-amber-600/40 text-amber-300 text-[11px]">
-                    ขาดอีก {activeDay.target - activeDay.pages} หน้า
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-md bg-neutral-850 text-neutral-400 text-[11px]">
-                    พักอ่าน (Rest Day)
-                  </span>
-                )}
-
-                {activeDay.booksRead.length > 0 && (
-                  <span className="hidden md:inline-flex items-center space-x-1 text-neutral-300 text-[11px] bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800">
-                    <span>{activeDay.booksRead[0].emoji}</span>
-                    <span className="truncate max-w-[140px]">{activeDay.booksRead[0].title}</span>
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* SVG Visual Canvas */}
+        <div>
+          {/* Main Visual SVG Container - Variation 2 Brutalist Paper Card */}
           <div 
-            id="chart-svg-container"
-            className="w-full bg-neutral-950/90 border border-neutral-800/90 rounded-xl p-2 sm:p-4 overflow-hidden relative select-none"
+            className="w-full border-2 border-[#121212] bg-[#ffffff] p-6 relative overflow-hidden select-none shadow-[8px_8px_0_#121212]"
+            style={{ minHeight: '230px' }}
           >
-            <svg
-              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-              className="w-full h-auto overflow-visible"
-              style={{ minHeight: '220px', maxHeight: '340px' }}
+            <svg 
+              viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
+              className="w-full h-auto block overflow-visible"
             >
               <defs>
-                {/* Bar Gradient Active */}
-                <linearGradient id="barGradEmerald" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#34d399" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#059669" stopOpacity={0.8} />
-                </linearGradient>
-
-                {/* Bar Gradient Selected / Hover */}
-                <linearGradient id="barGradHover" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6ee7b7" stopOpacity={1} />
-                  <stop offset="100%" stopColor="#10b981" stopOpacity={0.95} />
-                </linearGradient>
-
-                {/* Cumulative Area Gradient */}
-                <linearGradient id="areaGradCumulative" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.45} />
-                  <stop offset="85%" stopColor="#10b981" stopOpacity={0.02} />
+                <linearGradient id="brutalist-chart-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ff4d00" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#ff4d00" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
 
-              {/* Y-Axis Grid Lines & Labels */}
+              {/* Horizontal Gridlines */}
               {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-                const y = paddingTop + chartPlotHeight * (1 - ratio);
-                const value = Math.round(currentMaxY * ratio);
+                const y = paddingTop + chartPlotHeight - ratio * chartPlotHeight;
+                const valueLabel = Math.round(ratio * currentMaxY);
                 return (
                   <g key={ratio}>
-                    <line
-                      x1={paddingLeft}
-                      y1={y}
-                      x2={svgWidth - paddingRight}
-                      y2={y}
-                      stroke="#262626"
+                    <line 
+                      x1={paddingLeft} 
+                      y1={y} 
+                      x2={svgWidth - paddingRight} 
+                      y2={y} 
+                      stroke="#121212" 
+                      strokeWidth="1" 
+                      strokeOpacity="0.1" 
                       strokeDasharray="3 3"
-                      strokeWidth={1}
                     />
-                    <text
-                      x={paddingLeft - 8}
-                      y={y + 4}
-                      fill="#737373"
-                      fontSize={10}
-                      fontFamily="monospace"
-                      textAnchor="end"
+                    <text 
+                      x={paddingLeft - 8} 
+                      y={y + 3} 
+                      textAnchor="end" 
+                      className="font-mono text-[9px] fill-[#121212]/50"
                     >
-                      {value}
+                      {valueLabel}
                     </text>
                   </g>
                 );
               })}
 
-              {/* Daily Target Reference Line (Only in Daily view) */}
-              {viewType === 'daily' && targetY !== null && (
+              {/* Target Line for Daily View */}
+              {viewType === 'daily' && schedule?.targetPagesPerDay && (
                 <g>
-                  <line
-                    x1={paddingLeft}
-                    y1={targetY}
-                    x2={svgWidth - paddingRight}
-                    y2={targetY}
-                    stroke="#10b981"
-                    strokeDasharray="4 4"
-                    strokeWidth={1.5}
-                    opacity={0.85}
-                  />
-                  <rect
-                    x={svgWidth - paddingRight - 115}
-                    y={targetY - 18}
-                    width={115}
-                    height={16}
-                    rx={4}
-                    fill="#064e3b"
-                    opacity={0.9}
-                  />
-                  <text
-                    x={svgWidth - paddingRight - 8}
-                    y={targetY - 6}
-                    fill="#34d399"
-                    fontSize={10}
-                    fontFamily="monospace"
-                    textAnchor="end"
-                    fontWeight="bold"
-                  >
-                    เป้า: {schedule?.targetPagesPerDay || 20} หน้า
-                  </text>
-                </g>
-              )}
-
-              {/* Cumulative View Area Curve */}
-              {viewType === 'cumulative' && (
-                <g>
-                  <path
-                    d={areaFillPath}
-                    fill="url(#areaGradCumulative)"
-                  />
-                  <path
-                    d={splinePath}
-                    fill="none"
-                    stroke="#34d399"
-                    strokeWidth={2.5}
-                  />
-                </g>
-              )}
-
-              {/* Daily View: Bars & Spline */}
-              {viewType === 'daily' && (
-                <g>
-                  {/* Daily Page Bars */}
-                  {points.map((p, idx) => {
-                    const isHovered = hoveredIndex === idx;
-                    const isGoal = p.pages >= p.target;
-                    const hasRead = p.pages > 0;
+                  {(() => {
+                    const targetY = paddingTop + chartPlotHeight - ((schedule.targetPagesPerDay / currentMaxY) * chartPlotHeight);
                     return (
-                      <g 
-                        key={p.dateKey}
-                        className="cursor-pointer transition-transform"
-                        onMouseEnter={() => setHoveredIndex(idx)}
-                        onClick={() => setHoveredIndex(idx)}
-                      >
-                        {/* Hit Area */}
-                        <rect
-                          x={p.cx - p.barWidth}
-                          y={paddingTop}
-                          width={p.barWidth * 2}
-                          height={chartPlotHeight}
-                          fill="transparent"
+                      <>
+                        <line 
+                          x1={paddingLeft} 
+                          y1={targetY} 
+                          x2={svgWidth - paddingRight} 
+                          y2={targetY} 
+                          stroke="#ff4d00" 
+                          strokeWidth="1.5" 
+                          strokeDasharray="4 4" 
                         />
-                        {/* Bar */}
-                        <rect
-                          x={p.barX}
-                          y={p.barY}
-                          width={p.barWidth}
-                          height={p.barHeight}
-                          rx={3}
-                          fill={
-                            isHovered
-                              ? 'url(#barGradHover)'
-                              : hasRead
-                                ? 'url(#barGradEmerald)'
-                                : '#262626'
-                          }
-                          opacity={isHovered ? 1 : hasRead ? 0.9 : 0.4}
-                        />
-                        {/* Goal Met Indicator Dot */}
-                        {isGoal && (
-                          <circle
-                            cx={p.barX + p.barWidth / 2}
-                            cy={p.barY - 5}
-                            r={2.5}
-                            fill="#34d399"
-                          />
-                        )}
-                      </g>
+                        <text 
+                          x={svgWidth - paddingRight} 
+                          y={targetY - 5} 
+                          textAnchor="end" 
+                          className="font-mono text-[9px] font-bold fill-[#ff4d00]"
+                        >
+                          TARGET {schedule.targetPagesPerDay}P
+                        </text>
+                      </>
                     );
-                  })}
-
-                  {/* Trend Spline */}
-                  <path
-                    d={splinePath}
-                    fill="none"
-                    stroke="#a7f3d0"
-                    strokeWidth={1.5}
-                    opacity={0.4}
-                    strokeDasharray="2 2"
-                  />
+                  })()}
                 </g>
               )}
 
-              {/* Interactive Points on Cumulative Curve */}
-              {viewType === 'cumulative' && points.map((p, idx) => {
-                const isHovered = hoveredIndex === idx;
-                return (
-                  <circle
-                    key={p.dateKey}
-                    cx={p.cx}
-                    cy={p.cy}
-                    r={isHovered ? 5 : 2.5}
-                    fill={isHovered ? '#10b981' : '#34d399'}
-                    stroke="#000"
-                    strokeWidth={isHovered ? 2 : 1}
-                    className="cursor-pointer"
-                    onMouseEnter={() => setHoveredIndex(idx)}
-                    onClick={() => setHoveredIndex(idx)}
-                  />
-                );
-              })}
+              {/* Area Fill */}
+              {areaFillPath && (
+                <path 
+                  d={areaFillPath} 
+                  fill="url(#brutalist-chart-gradient)" 
+                />
+              )}
 
-              {/* X-Axis Dates */}
-              {points.map((p, idx) => {
-                // Show date label every 3 days to avoid crowding
-                const showLabel = idx === 0 || idx === points.length - 1 || idx % 3 === 0;
-                if (!showLabel) return null;
-                const isHovered = hoveredIndex === idx;
+              {/* Spline Path */}
+              {splinePath && (
+                <path 
+                  d={splinePath} 
+                  fill="none" 
+                  stroke="#121212" 
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                />
+              )}
+
+              {/* Data Points */}
+              {points.map((pt, i) => {
+                const isHovered = hoveredIndex === i;
                 return (
-                  <text
-                    key={p.dateKey}
-                    x={p.cx}
-                    y={svgHeight - 12}
-                    fill={isHovered ? '#34d399' : '#737373'}
-                    fontSize={10}
-                    fontFamily="monospace"
-                    textAnchor="middle"
-                    fontWeight={isHovered ? 'bold' : 'normal'}
+                  <g 
+                    key={pt.dateKey} 
+                    className="cursor-pointer"
+                    onMouseEnter={() => setHoveredIndex(i)}
+                    onMouseLeave={() => setHoveredIndex(null)}
                   >
-                    {p.displayDate}
-                  </text>
+                    <circle 
+                      cx={pt.cx} 
+                      cy={pt.cy} 
+                      r={isHovered ? 6 : 3.5} 
+                      fill={isHovered ? "#ff4d00" : "#ffffff"} 
+                      stroke="#121212" 
+                      strokeWidth="2" 
+                      className="transition-all duration-150"
+                    />
+
+                    {/* Interactive invisible hit box */}
+                    <rect 
+                      x={pt.cx - 10} 
+                      y={paddingTop} 
+                      width={20} 
+                      height={chartPlotHeight} 
+                      fill="transparent" 
+                    />
+
+                    {/* X-axis date labels */}
+                    {i % 4 === 0 && (
+                      <text 
+                        x={pt.cx} 
+                        y={svgHeight - 10} 
+                        textAnchor="middle" 
+                        className="font-mono text-[9px] fill-[#121212]/60"
+                      >
+                        {pt.displayDate}
+                      </text>
+                    )}
+                  </g>
                 );
               })}
             </svg>
-          </div>
 
-          <div className="flex items-center justify-between text-[11px] text-neutral-400 px-1 font-mono">
-            <span className="flex items-center space-x-1">
-              <Info className="w-3.5 h-3.5 text-neutral-400" />
-              <span>คลิกหรือแตะแท่งกราฟเพื่อดูรายละเอียดการอ่านแต่ละวัน</span>
-            </span>
-            <span className="text-emerald-400 font-medium">30 วันต่อเนื่อง</span>
+            {/* Hover details pill */}
+            {activeDay && (
+              <div className="mt-4 pt-4 border-t-2 border-[#121212] flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
+                <div className="flex items-center gap-2">
+                  <span className="badge">{activeDay.dateKey}</span>
+                  <span className="font-bold">{activeDay.dayOfWeek}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span>หน้าที่อ่าน: <strong className="text-[#ff4d00]">{activeDay.pages} หน้า</strong></span>
+                  <span>สะสมรวม: <strong>{activeDay.cumulativePages} หน้า</strong></span>
+                  <span className={activeDay.isGoalMet ? 'text-green-700 font-bold' : 'text-[#121212]/50'}>
+                    {activeDay.isGoalMet ? '✓ บรรลุเป้าหมาย' : 'ต่ำกว่าเป้าหมาย'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ) : (
-        /* Data Table View: ตารางข้อมูลกราฟการอ่าน 30 วัน */
-        <div id="chart-data-table-view" className="relative z-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-3">
-            <div className="flex items-center space-x-2">
-              <span className="text-xs font-semibold text-white">ตารางข้อมูลการอ่าน 30 วันล่าสุด</span>
-              <span className="text-[11px] font-mono text-neutral-400">({tableRows.length} รายการ)</span>
-            </div>
-
-            <div className="relative w-full sm:w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-              <input
+        /* Logs Table View */
+        <div className="border-2 border-[#121212] bg-[#ffffff] shadow-[8px_8px_0_#121212] overflow-x-auto">
+          <div className="p-4 border-b-2 border-[#121212] flex items-center justify-between bg-[#f8f7f4]">
+            <span className="font-mono text-xs uppercase font-bold">ประวัติบันทึกการอ่านทั้งหมด</span>
+            <div className="relative">
+              <input 
                 type="text"
-                placeholder="ค้นหาวันที่หรือชื่อหนังสือ..."
+                placeholder="ค้นหาชื่อหนังสือ..."
                 value={tableSearchTerm}
                 onChange={(e) => setTableSearchTerm(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-neutral-950 border border-neutral-800 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-emerald-500 transition"
+                className="px-3 py-1 bg-white border border-[#121212] font-mono text-xs focus:outline-none"
               />
             </div>
           </div>
-
-          <div className="overflow-x-auto rounded-xl border border-neutral-800 max-h-80 overflow-y-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-neutral-950/90 text-neutral-400 font-medium uppercase text-[10px] tracking-wider sticky top-0 z-10 border-b border-neutral-800">
-                <tr>
-                  <th className="py-2.5 px-3">วันที่ (Date)</th>
-                  <th className="py-2.5 px-3">หน้าที่อ่าน</th>
-                  <th className="py-2.5 px-3">สะสม 30 วัน</th>
-                  <th className="py-2.5 px-3">เป้าหมาย & สถานะ</th>
-                  <th className="py-2.5 px-3">หนังสือที่อ่าน</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-850">
-                {tableRows.map((row) => (
-                  <tr key={row.dateKey} className="hover:bg-neutral-850/40 transition font-mono">
-                    <td className="py-2.5 px-3 text-white flex items-center space-x-1.5 font-sans">
-                      <span className="font-medium">{row.displayDate}</span>
-                      <span className="text-[11px] text-neutral-400">({row.dayOfWeek})</span>
-                    </td>
-                    <td className="py-2.5 px-3">
-                      {row.pages > 0 ? (
-                        <span className="font-bold text-emerald-400">+{row.pages} หน้า</span>
-                      ) : (
-                        <span className="text-neutral-500">-</span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 text-neutral-300">
-                      {row.cumulativePages} หน้า
-                    </td>
-                    <td className="py-2.5 px-3 font-sans">
-                      {row.pages >= row.target ? (
-                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-medium">
-                          <CheckCircle2 className="w-2.5 h-2.5" />
-                          <span>ผ่านเป้า ({row.target})</span>
-                        </span>
-                      ) : row.pages > 0 ? (
-                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-amber-950/60 border border-amber-600/40 text-amber-300 text-[10px]">
-                          <span>ขาด {row.target - row.pages} หน้า</span>
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-full bg-neutral-850 text-neutral-500 text-[10px]">
-                          <span>พักอ่าน</span>
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 font-sans">
-                      {row.booksRead.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {row.booksRead.map((b, idx) => (
-                            <span key={idx} className="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-neutral-800 text-neutral-200 text-[11px]">
-                              <span>{b.emoji}</span>
-                              <span className="truncate max-w-[150px]">{b.title}</span>
-                              <span className="text-emerald-400 font-mono text-[10px]">({b.pages} น.)</span>
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-neutral-500 text-[11px]">-</span>
-                      )}
-                    </td>
+          <table className="archive-table mt-0">
+            <thead>
+              <tr className="bg-[#121212]/5">
+                <th>วันและเวลา</th>
+                <th>ชื่อหนังสือ</th>
+                <th>จำนวนหน้า</th>
+                <th>ช่วงหน้าที่อ่าน</th>
+                <th>ช่องทาง</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs
+                .filter(l => !tableSearchTerm || l.bookTitle.toLowerCase().includes(tableSearchTerm.toLowerCase()))
+                .slice(0, 15)
+                .map(log => (
+                  <tr key={log.id}>
+                    <td className="font-mono text-xs">{log.timestamp}</td>
+                    <td className="font-semibold">{log.bookTitle}</td>
+                    <td className="font-mono text-xs font-bold text-[#ff4d00]">+{log.pagesRead} หน้า</td>
+                    <td className="font-mono text-xs opacity-70">น. {log.fromPage} → น. {log.toPage}</td>
+                    <td><span className="badge">{log.source}</span></td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* Footer Info & Legend */}
-      <div className="mt-4 pt-3 border-t border-neutral-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-neutral-400">
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-1.5">
-            <span className="w-3 h-3 rounded-xs bg-emerald-500 inline-block"></span>
-            <span className="text-neutral-300">หน้าที่อ่านรายวัน</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <span className="w-4 h-0.5 border-t-2 border-dashed border-emerald-400 inline-block"></span>
-            <span className="text-neutral-300">เป้าหมายประจำวัน ({schedule?.targetPagesPerDay || 20} หน้า)</span>
-          </div>
+      {/* Summary 3-cell Brutalist Strip */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="border-2 border-[#121212] bg-[#f8f7f4] p-4 shadow-[4px_4px_0_#121212]">
+          <span className="label">ยอดอ่านรวม 30 วัน</span>
+          <div className="font-display text-2xl font-extrabold text-[#121212]">{totalPagesInPeriod} <span className="text-xs font-mono font-normal">หน้า</span></div>
         </div>
-        <div className="flex items-center space-x-1 text-[11px] text-neutral-400 font-mono">
-          <span>อัปเดตแบบเรียลไทม์เมื่อบันทึกผ่าน Web หรือ LINE</span>
-          <ArrowUpRight className="w-3.5 h-3.5 text-neutral-400" />
+        <div className="border-2 border-[#121212] bg-[#f8f7f4] p-4 shadow-[4px_4px_0_#121212]">
+          <span className="label">ค่าเฉลี่ยรายวัน</span>
+          <div className="font-display text-2xl font-extrabold text-[#121212]">{averageDailyPages} <span className="text-xs font-mono font-normal">หน้า/วัน</span></div>
+        </div>
+        <div className="border-2 border-[#121212] bg-[#f8f7f4] p-4 shadow-[4px_4px_0_#121212]">
+          <span className="label">วันที่บรรลุเป้าหมาย</span>
+          <div className="font-display text-2xl font-extrabold text-[#121212]">{daysGoalMet} <span className="text-xs font-mono font-normal">/ 30 วัน</span></div>
         </div>
       </div>
-    </section>
+
+    </div>
   );
 };

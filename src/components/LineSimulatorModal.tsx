@@ -35,7 +35,7 @@ export const LineSimulatorModal: React.FC<LineSimulatorModalProps> = ({
     {
       id: 'msg-1',
       sender: 'bot',
-      text: `สวัสดีครับคุณ ${schedule.lineDisplayName || 'ผู้อ่าน'}! 📚\n\nยินดีต้อนรับสู่ Tsundoku Killer Bot ผมเชื่อมต่อกับระบบของคุณเรียบร้อยแล้ว\n\nเมื่อถึงเวลา ${schedule.reminderTime} น. ในวันแจ้งเตือน ผมจะส่งข้อความสะกิดพร้อม Quick Reply ให้คุณตอบกลับได้ใน 1 วินาทีครับ`,
+      text: `สวัสดีครับคุณ ${schedule.lineDisplayName || 'ผู้อ่าน'}! 📚\n\nยินดีต้อนรับสู่ I'm your Bunnarak Bot ผมเชื่อมต่อกับระบบของคุณเรียบร้อยแล้ว\n\nเมื่อถึงเวลา ${schedule.reminderTime} น. ในวันแจ้งเตือน ผมจะส่งข้อความสะกิดพร้อม Quick Reply ให้คุณตอบกลับได้ใน 1 วินาทีครับ`,
       timestamp: '19:59'
     },
     {
@@ -251,64 +251,64 @@ export const LineSimulatorModal: React.FC<LineSimulatorModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md">
-      <div className="bg-neutral-900 border border-neutral-700 rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm">
+      <div className="bg-[#f8f7f4] border-2 border-[#121212] w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden shadow-[16px_16px_0_#121212]">
         
         {/* Modal Top Header */}
-        <div className="px-5 py-3.5 bg-neutral-950 border-b border-neutral-800 flex items-center justify-between">
+        <div className="px-5 py-3.5 bg-white border-b-2 border-[#121212] flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-[#06C755] flex items-center justify-center text-white font-bold text-sm shadow">
+            <div className="w-8 h-8 bg-[#06C755] flex items-center justify-center text-white font-bold text-xs font-mono border border-[#121212] shadow-[2px_2px_0_#121212]">
               LINE
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-bold text-white">LINE Messaging API Simulator</h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
-                  LIVE SIMULATION
+                <h3 className="text-sm font-bold font-display text-[#121212]">เครื่องมือจำลอง LINE Messaging API</h3>
+                <span className="badge bg-[#ff4d00] text-white">
+                  การจำลองเสมือนจริง
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-400">
-                จำลองการแจ้งเตือนและการตอบกลับด้วย Quick Reply แบบสองทาง (Interactive Webhook)
+              <p className="text-[11px] font-mono text-[#121212]/60">
+                ระบบจำลอง Webhook สองทางแบบเรียลไทม์ พร้อมปุ่ม Quick Reply ตอบกลับใน 1 วินาที
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-2">
             {/* View switcher tabs */}
-            <div className="hidden sm:flex items-center bg-neutral-900 p-1 rounded-lg border border-neutral-800 text-xs">
+            <div className="hidden sm:flex items-center border-2 border-[#121212] bg-[#f8f7f4] text-xs font-mono">
               <button
                 onClick={() => setActiveTab('simulator')}
-                className={`px-3 py-1 rounded-md transition ${
-                  activeTab === 'simulator' ? 'bg-neutral-800 text-white font-medium' : 'text-neutral-400 hover:text-white'
+                className={`px-3 py-1 font-bold transition cursor-pointer ${
+                  activeTab === 'simulator' ? 'bg-[#121212] text-[#f8f7f4]' : 'text-[#121212] hover:bg-[#121212]/10'
                 }`}
               >
-                📱 หน้าจอแชท LINE
+                📱 แชท LINE
               </button>
               <button
                 onClick={() => setActiveTab('webhook_inspector')}
-                className={`px-3 py-1 rounded-md transition flex items-center space-x-1 ${
-                  activeTab === 'webhook_inspector' ? 'bg-neutral-800 text-white font-medium' : 'text-neutral-400 hover:text-white'
+                className={`px-3 py-1 font-bold transition cursor-pointer flex items-center space-x-1 border-l-2 border-[#121212] ${
+                  activeTab === 'webhook_inspector' ? 'bg-[#121212] text-[#f8f7f4]' : 'text-[#121212] hover:bg-[#121212]/10'
                 }`}
               >
-                <Terminal className="w-3 h-3 text-sky-400" />
-                <span>Payload & Logs</span>
+                <Terminal className="w-3 h-3 text-[#ff4d00]" />
+                <span>ดู Payload Logs</span>
               </button>
               <button
                 onClick={() => setActiveTab('line_setup')}
-                className={`px-3 py-1 rounded-md transition flex items-center space-x-1 ${
-                  activeTab === 'line_setup' ? 'bg-neutral-800 text-white font-medium' : 'text-neutral-400 hover:text-white'
+                className={`px-3 py-1 font-bold transition cursor-pointer flex items-center space-x-1 border-l-2 border-[#121212] ${
+                  activeTab === 'line_setup' ? 'bg-[#121212] text-[#f8f7f4]' : 'text-[#121212] hover:bg-[#121212]/10'
                 }`}
               >
-                <Shield className="w-3 h-3 text-emerald-400" />
-                <span>การต่อของจริง</span>
+                <Shield className="w-3 h-3 text-[#ff4d00]" />
+                <span>คู่มือเชื่อมต่อ</span>
               </button>
             </div>
 
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition"
+              className="p-1 border border-[#121212] bg-white hover:bg-black hover:text-white transition cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>

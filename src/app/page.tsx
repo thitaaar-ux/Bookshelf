@@ -1,7 +1,8 @@
 'use client';
 
-import ReaderDashboard from '@/src/components/ReaderDashboard';
+import ReaderDashboard from '../components/ReaderDashboard';
 
 export default function HomePage() {
   return <ReaderDashboard />;
 }
+

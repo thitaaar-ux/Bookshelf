@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
-import { hydrateLineConfig } from '@/src/lib/serverState';
+import { lineConfig } from '@/lib/serverState';
 
 export async function GET() {
-  const lineConfig = await hydrateLineConfig();
   const token = lineConfig.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN;
   if (!token) {
     return NextResponse.json({
@@ -23,7 +22,6 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const lineConfig = await hydrateLineConfig();
   const token = lineConfig.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN;
   if (!token) {
     return NextResponse.json({ error: 'Missing LINE token' }, { status: 400 });

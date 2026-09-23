@@ -3,7 +3,7 @@ import { Book, UserSchedule, ReadingLog } from '../../types';
 import { 
   Users, BookOpen, Flame, MessageSquare, 
   TrendingUp, CheckCircle2, Clock, Sparkles, 
-  Radio, ArrowRight, Activity, ShieldCheck 
+  Radio, ArrowRight, Activity, ShieldCheck, Database 
 } from 'lucide-react';
 
 interface AdminOverviewTabProps {
@@ -53,6 +53,13 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
           </div>
         </div>
         <div className="flex items-center space-x-2.5">
+          <button
+            onClick={() => onNavigateTab('database')}
+            className="px-3.5 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-750 text-sky-400 border border-sky-500/30 text-xs font-semibold transition cursor-pointer flex items-center space-x-1.5 shadow-sm"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span>ฐานข้อมูล DB</span>
+          </button>
           <button
             onClick={() => onNavigateTab('broadcast')}
             className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-neutral-950 text-xs font-semibold transition cursor-pointer flex items-center space-x-1.5 shadow-sm"

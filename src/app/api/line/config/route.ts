@@ -1,80 +1,78 @@
 import { NextResponse } from 'next/server';
-import { getLineConfigFromDb, saveLineConfigToDb, getAllAppSettingsFromDb } from '@/src/lib/db';
-
-const SENSITIVE_SETTING_KEYS = ['secret', 'token'];
-
-function isSensitiveSetting(key: string) {
-  return SENSITIVE_SETTING_KEYS.some((needle) => key.toLowerCase().includes(needle));
-}
-
-function maskSettingValue(key: string, value: string) {
-  if (!isSensitiveSetting(key)) return value;
-  if (!value) return '';
-  return '********';
-}
+import { lineConfig, updateLineConfig } from '@/src/lib/serverState';
+import { getAllAppSettingsFromDb, getDbStatus } from '@/src/lib/db';
 
 export async function GET() {
-  const currentConfig = await getLineConfigFromDb();
-  const dbRows = await getAllAppSettingsFromDb();
+  const dbStatus = await getDbStatus();
+  const dbRows = getAllAppSettingsFromDb();
 
   return NextResponse.json({
-    hasToken: Boolean(currentConfig.channelAccessToken),
-    hasSecret: Boolean(currentConfig.channelSecret),
-    botName: currentConfig.botName || 'Bunnarak',
-    botBasicId: currentConfig.botBasicId || '@869uobem',
-    channelId: currentConfig.channelId || '2011678531',
-    channelAccessToken: '',
-    channelSecret: '',
-    targetUserId: currentConfig.targetUserId || 'U9330ea2a3097a7e8ea7b81a9eeb82088',
-    enabled: currentConfig.enabled,
-    reminderDaysAhead: currentConfig.reminderDaysAhead,
-    storageType: 'PostgreSQL Database (Table: app_settings)',
-    dbFile: 'postgresql://.../bookshelf',
-    dbRows: dbRows.map((row) => ({
-      ...row,
-      value: maskSettingValue(row.key, row.value),
-    })),
+    hasToken: Boolean(lineConfig?.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN),
+    hasSecret: Boolean(lineConfig?.channelSecret || process.env.LINE_CHANNEL_SECRET),
+    botName: lineConfig?.botName || process.env.LINE_BOT_NAME || 'Bunnarak',
+    botBasicId: lineConfig?.botBasicId || process.env.LINE_BOT_ID || '@869uobem',
+    channelId: lineConfig?.channelId || process.env.LINE_CHANNEL_ID || '2011678531',
+    channelAccessToken: lineConfig?.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN || '',
+    channelSecret: lineConfig?.channelSecret || process.env.LINE_CHANNEL_SECRET || '',
+    targetUserId: lineConfig?.targetUserId || process.env.LINE_TARGET_USER_ID || 'U9330ea2a3097a7e8ea7b81a9eeb82088',
+    enabled: lineConfig?.enabled ?? true,
+    reminderDaysAhead: lineConfig?.reminderDaysAhead ?? 1,
+    latestCapturedUser: lineConfig?.latestCapturedUser,
+    storageType: dbStatus.activeDriver,
+    dbFile: 'data/tsundoku.db',
+    dbRows,
+    postgresStatus: dbStatus.postgres,
   });
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { 
+    const {
       botName,
       botBasicId,
       channelId,
-      channelAccessToken, 
-      channelSecret, 
-      targetUserId, 
-      enabled, 
-      reminderDaysAhead 
+      channelAccessToken,
+      channelSecret,
+      targetUserId,
+      enabled,
+      reminderDaysAhead,
     } = body;
 
     const updates: any = {};
-    if (botName !== undefined) updates.botName = botName.trim();
-    if (botBasicId !== undefined) updates.botBasicId = botBasicId.trim();
-    if (channelId !== undefined) updates.channelId = channelId.trim();
-    if (channelAccessToken !== undefined && channelAccessToken.trim()) {
+    if (botName !== undefined) {
+      updates.botName = botName.trim();
+      process.env.LINE_BOT_NAME = botName.trim();
+    }
+    if (botBasicId !== undefined) {
+      updates.botBasicId = botBasicId.trim();
+      process.env.LINE_BOT_ID = botBasicId.trim();
+    }
+    if (channelId !== undefined) {
+      updates.channelId = channelId.trim();
+      process.env.LINE_CHANNEL_ID = channelId.trim();
+    }
+    if (channelAccessToken !== undefined) {
       updates.channelAccessToken = channelAccessToken.trim();
+      process.env.LINE_CHANNEL_ACCESS_TOKEN = channelAccessToken.trim();
     }
-    if (channelSecret !== undefined && channelSecret.trim()) {
+    if (channelSecret !== undefined) {
       updates.channelSecret = channelSecret.trim();
+      process.env.LINE_CHANNEL_SECRET = channelSecret.trim();
     }
-    if (targetUserId !== undefined) updates.targetUserId = targetUserId.trim();
+    if (targetUserId !== undefined) {
+      updates.targetUserId = targetUserId.trim();
+      process.env.LINE_TARGET_USER_ID = targetUserId.trim();
+    }
     if (enabled !== undefined) updates.enabled = Boolean(enabled);
     if (reminderDaysAhead !== undefined) updates.reminderDaysAhead = Number(reminderDaysAhead);
 
-    await saveLineConfigToDb(updates);
+    const saved = updateLineConfig(updates);
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'บันทึกลง PostgreSQL Database (Table: app_settings) สำเร็จแล้ว',
-      config: {
-        ...updates,
-        channelAccessToken: updates.channelAccessToken ? '********' : undefined,
-        channelSecret: updates.channelSecret ? '********' : undefined,
-      },
+    return NextResponse.json({
+      success: true,
+      message: 'บันทึกการตั้งค่า LINE ลงฐานข้อมูลสำเร็จ',
+      config: saved,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message }, { status: 400 });
