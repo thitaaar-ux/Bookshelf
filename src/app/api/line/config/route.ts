@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     if (enabled !== undefined) updates.enabled = Boolean(enabled);
     if (reminderDaysAhead !== undefined) updates.reminderDaysAhead = Number(reminderDaysAhead);
 
-    const saved = updateLineConfig(updates);
+    const saved = await updateLineConfig(updates);
 
     return NextResponse.json({
       success: true,
