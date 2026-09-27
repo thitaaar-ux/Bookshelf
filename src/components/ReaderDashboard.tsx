@@ -42,7 +42,7 @@ export default function ReaderDashboard() {
   const [books, setBooks] = useState<Book[]>(INITIAL_BOOKS);
   const [logs, setLogs] = useState<ReadingLog[]>(INITIAL_READING_LOGS);
   const [schedule, setSchedule] = useState<UserSchedule>(INITIAL_SCHEDULE);
-  const [activeBookId, setActiveBookId] = useState<string>('book-1');
+  const [activeBookId, setActiveBookId] = useState<string>('');
 
   // Navigation state
   const [activeTab, setActiveTab] = useState<'dashboard' | 'library' | 'charts'>('dashboard');
@@ -80,7 +80,7 @@ export default function ReaderDashboard() {
 
   // Manual Quick Log Form
   const [pagesToLog, setPagesToLog] = useState(15);
-  const [selectedBookForLog, setSelectedBookForLog] = useState('book-1');
+  const [selectedBookForLog, setSelectedBookForLog] = useState('');
   const [serverDbStatus, setServerDbStatus] = useState<{
     connected: boolean;
     storageEngine: string;
@@ -88,8 +88,8 @@ export default function ReaderDashboard() {
     lastUpdated?: string;
   }>({
     connected: true,
-    storageEngine: 'Server File Database (JSON)',
-    totalBooks: INITIAL_BOOKS.length,
+    storageEngine: 'PostgreSQL (Cloud Database)',
+    totalBooks: 0,
   });
 
   // Load state from Server Database API on mount with localStorage fallback
@@ -100,16 +100,31 @@ export default function ReaderDashboard() {
       if (savedUser) setCurrentUser(JSON.parse(savedUser));
 
       const savedBooks = localStorage.getItem('tsundoku_books');
-      if (savedBooks) setBooks(JSON.parse(savedBooks));
+      if (savedBooks) {
+        const parsed = JSON.parse(savedBooks);
+        if (Array.isArray(parsed) && parsed.some((b: any) => b.id === 'book-1' || b.id === 'book-2')) {
+          localStorage.removeItem('tsundoku_books');
+          localStorage.removeItem('tsundoku_logs');
+        } else {
+          setBooks(parsed);
+        }
+      }
 
       const savedLogs = localStorage.getItem('tsundoku_logs');
-      if (savedLogs) setLogs(JSON.parse(savedLogs));
+      if (savedLogs) {
+        const parsedLogs = JSON.parse(savedLogs);
+        if (Array.isArray(parsedLogs) && parsedLogs.some((l: any) => l.id === 'log-30' || l.id === 'log-1')) {
+          localStorage.removeItem('tsundoku_logs');
+        } else {
+          setLogs(parsedLogs);
+        }
+      }
 
       const savedSchedule = localStorage.getItem('tsundoku_schedule');
       if (savedSchedule) setSchedule(JSON.parse(savedSchedule));
 
       const savedActiveBookId = localStorage.getItem('tsundoku_active_book_id');
-      if (savedActiveBookId) setActiveBookId(savedActiveBookId);
+      if (savedActiveBookId && savedActiveBookId !== 'book-1') setActiveBookId(savedActiveBookId);
     } catch {
       // Local fallback
     }
@@ -429,7 +444,7 @@ export default function ReaderDashboard() {
             </section>
 
             {/* Variation 2 Active Book Box */}
-            {activeBook && (
+            {activeBook ? (
               <section id="active-book-focus-box" className="active-book-box">
                 <img 
                   src={activeBook.coverUrl || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80"} 
@@ -518,6 +533,18 @@ export default function ReaderDashboard() {
                   </div>
                 </div>
               </section>
+            ) : (
+              <section id="active-book-focus-box" className="active-book-box border-2 border-dashed border-[#121212]/30 flex flex-col items-center justify-center text-center p-8 bg-[#f8f7f4]">
+                <BookOpen className="w-10 h-10 opacity-30 mb-2" />
+                <h3 className="font-bold text-base mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>ยังไม่มีหนังสือในคลัง</h3>
+                <p className="text-xs font-mono opacity-60 mb-4">เพิ่มหนังสือเล่มแรกเพื่อเริ่มบันทึกและให้บอท LINE ช่วยติดตามกองดอง</p>
+                <button
+                  onClick={() => setIsAddBookModalOpen(true)}
+                  className="btn bg-[#ff4d00] text-white border-2 border-[#121212] text-xs py-2 px-4 shadow-[3px_3px_0_#121212] font-mono cursor-pointer"
+                >
+                  + เพิ่มหนังสือเล่มแรก
+                </button>
+              </section>
             )}
 
             {/* Variation 2 Collection List Table */}
@@ -543,11 +570,18 @@ export default function ReaderDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {books.map((book) => {
-                      const prog = Math.round((book.currentPage / (book.totalPages || 1)) * 100);
-                      const isCurrent = book.id === activeBookId;
-                      return (
-                        <tr key={book.id} className={isCurrent ? 'bg-[#ff4d00]/5' : ''}>
+                    {books.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="text-center py-10 font-mono text-sm opacity-60">
+                          ยังไม่มีหนังสือในระบบ กดปุ่ม &quot;+ เพิ่มหนังสือใหม่&quot; ด้านบนเพื่อเริ่มต้น
+                        </td>
+                      </tr>
+                    ) : (
+                      books.map((book) => {
+                        const prog = Math.round((book.currentPage / (book.totalPages || 1)) * 100);
+                        const isCurrent = book.id === activeBookId;
+                        return (
+                          <tr key={book.id} className={isCurrent ? 'bg-[#ff4d00]/5' : ''}>
                           <td style={{ fontWeight: 600 }}>
                             <div className="flex items-center gap-3">
                               {book.coverUrl ? (
@@ -614,7 +648,7 @@ export default function ReaderDashboard() {
                           </td>
                         </tr>
                       );
-                    })}
+                    }))}
                   </tbody>
                 </table>
               </div>

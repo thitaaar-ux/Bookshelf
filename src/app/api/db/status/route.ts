@@ -8,6 +8,7 @@ import {
 } from '@/src/lib/postgres';
 import { getDbStatus, getAllAppSettingsFromDb } from '@/src/lib/db';
 import { INITIAL_BOOKS } from '@/src/data/initialData';
+import { DEFAULT_USER_ID } from '@/src/lib/serverDb';
 
 export async function GET() {
   try {
@@ -58,13 +59,17 @@ export async function POST(req: Request) {
         if (count === 0) {
           for (const b of INITIAL_BOOKS) {
             await queryPostgres(`
-              INSERT INTO books (id, title, author, total_pages, current_page, status, category, target_pages_per_day, target_finish_date, cover_emoji, cover_url, notes, started_at, completed_at, added_at)
-              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+              INSERT INTO books (
+                id, user_id, title, author, total_pages, current_page, status,
+                category, target_pages_per_day, target_finish_date, cover_emoji,
+                cover_url, notes, started_at, completed_at
+              )
+              VALUES ($1, $2, $3, $4, $5, $6, $7::book_status_enum, $8, $9, $10, $11, $12, $13, $14, $15)
               ON CONFLICT (id) DO NOTHING;
             `, [
-              b.id, b.title, b.author, b.totalPages, b.currentPage, b.status,
+              b.id, DEFAULT_USER_ID, b.title, b.author, b.totalPages, b.currentPage, b.status,
               b.category, b.targetPagesPerDay, b.targetFinishDate, b.coverEmoji,
-              b.coverUrl, b.notes || '', b.startedAt || null, b.completedAt || null, b.addedAt || null
+              b.coverUrl, b.notes || '', b.startedAt || null, b.completedAt || null
             ]);
           }
           return NextResponse.json({ success: true, message: `ซี้ดข้อมูล ${INITIAL_BOOKS.length} เล่มลง PostgreSQL สำเร็จ` });

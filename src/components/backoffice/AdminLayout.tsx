@@ -134,7 +134,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           <div className="flex items-center space-x-3 text-xs">
             <div className="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-300">
               <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Express API: <span className="font-mono text-emerald-400">Port 3000</span></span>
+              <span>Next.js API: <span className="font-mono text-emerald-400">Port 3001</span></span>
             </div>
 
             <button

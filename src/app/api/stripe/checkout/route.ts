@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}));
     const { userId = 'U9330ea2a3097a7e8ea7b81a9eeb82088', userEmail = 'bunnarak.reader@line.me', origin: clientOrigin } = body;
 
-    const reqOrigin = clientOrigin || req.headers.get('origin') || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const reqOrigin = clientOrigin || req.headers.get('origin') || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
     const secretKey = stripeConfig.secretKey || process.env.STRIPE_SECRET_KEY;
 
     // Real Stripe Mode

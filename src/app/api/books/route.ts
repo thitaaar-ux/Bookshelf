@@ -3,7 +3,7 @@ import { getBooks, addBook, updateBook, deleteBook } from '@/lib/serverDb';
 
 export async function GET() {
   try {
-    const books = getBooks();
+    const books = await getBooks();
     return NextResponse.json({
       success: true,
       count: books.length,
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const createdBook = addBook(body);
+    const createdBook = await addBook(body);
     return NextResponse.json(
       {
         success: true,
@@ -56,7 +56,7 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    const updatedBook = updateBook(body.id, body);
+    const updatedBook = await updateBook(body.id, body);
     if (!updatedBook) {
       return NextResponse.json(
         { success: false, error: 'Book not found' },
@@ -89,7 +89,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const deleted = deleteBook(id);
+    const deleted = await deleteBook(id);
     if (!deleted) {
       return NextResponse.json(
         { success: false, error: 'Book not found or already deleted' },

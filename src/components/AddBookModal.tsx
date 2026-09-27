@@ -122,59 +122,42 @@ export const AddBookModal: React.FC<AddBookModalProps> = ({
     }, 100);
   }, [editingBook, isOpen]);
 
-  // Handle client-side image file reading and compression
-  const processImageFile = (file: File) => {
+  // Handle client-side image file reading and R2 upload
+  const processImageFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       setImageError('กรุณาเลือกไฟล์รูปภาพที่ถูกต้อง (PNG, JPG, WebP)');
+      return;
+    }
+
+    // Single file limit: 1 MB
+    if (file.size > 1 * 1024 * 1024) {
+      setImageError(`ขนาดไฟล์ (${(file.size / (1024 * 1024)).toFixed(2)} MB) เกินเงื่อนไขที่กำหนด (สูงสุด 1 MB ต่อรูป)`);
       return;
     }
 
     setImageError('');
     setIsProcessingImage(true);
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 600;
-        const MAX_HEIGHT = 800;
-        let width = img.width;
-        let height = img.height;
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height = Math.round((height * MAX_WIDTH) / width);
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width = Math.round((width * MAX_HEIGHT) / height);
-            height = MAX_HEIGHT;
-          }
-        }
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, width, height);
-          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-          setCoverUrl(compressedDataUrl);
-        }
-        setIsProcessingImage(false);
-      };
-      img.onerror = () => {
-        setImageError('ไม่สามารถโหลดรูปภาพนี้ได้');
-        setIsProcessingImage(false);
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.onerror = () => {
-      setImageError('เกิดข้อผิดพลาดในการอ่านไฟล์');
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setImageError(data.error || 'อัปโหลดรูปภาพไปยัง R2 ไม่สำเร็จ');
+      } else {
+        setCoverUrl(data.url);
+      }
+    } catch (err: any) {
+      setImageError(err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อเพื่ออัปโหลดภาพ');
+    } finally {
       setIsProcessingImage(false);
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -599,11 +582,11 @@ export const AddBookModal: React.FC<AddBookModalProps> = ({
                         </span>
                       </div>
                       <p className="text-[10px] font-mono text-[#121212]/50 mt-1">
-                        รองรับ JPG, PNG, WebP (บีบอัดและแปลงเป็น Data URL อัตโนมัติ)
+                        รองรับ JPG, PNG, WebP (เก็บบน Cloudflare R2 • ไม่เกิน 1 MB/รูป • รวมไม่เกิน 5 MB)
                       </p>
                       {isProcessingImage && (
                         <p className="text-xs font-mono text-[#ff4d00] mt-1 font-bold animate-pulse">
-                          กำลังประมวลผลและบีบอัดภาพ...
+                          กำลังอัปโหลดไปยัง Cloudflare R2...
                         </p>
                       )}
                       {imageError && (

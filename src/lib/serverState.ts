@@ -57,17 +57,7 @@ declare global {
 }
 
 if (!globalThis.__tsundokuLogs) {
-  globalThis.__tsundokuLogs = [
-    {
-      id: 'init-1',
-      timestamp: new Date().toLocaleTimeString('th-TH'),
-      source: 'real_line_webhook',
-      eventType: 'system_boot',
-      userId: 'U9330ea2a3097a7e8ea7b81a9eeb82088',
-      payload: { status: 'Next.js App Router API active', db: 'PostgreSQL' },
-      botReply: 'ระบบ TSUNDOKU Next.js พร้อมทำงาน (เชื่อมต่อกับ PostgreSQL สำเร็จ)',
-    }
-  ];
+  globalThis.__tsundokuLogs = [];
 }
 
 if (!globalThis.__tsundokuLineConfig) {
@@ -94,36 +84,7 @@ if (!globalThis.__tsundokuStripeConfig) {
 }
 
 if (!globalThis.__tsundokuSubscriptions) {
-  const now = new Date();
-  const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
-  const oneMonthLater = new Date(now.getTime() + 33 * 24 * 60 * 60 * 1000);
-
-  globalThis.__tsundokuSubscriptions = [
-    {
-      id: 'sub_demo_01',
-      userId: 'U256aa66d5563c7dd1f7ee2967b9f92d9',
-      userEmail: 'somchai.reader@line.me',
-      planName: 'Tsundoku Pro (3 วันแรกฟรี จากนั้น 39 บ./เดือน)',
-      status: 'trialing',
-      trialEndsAt: threeDaysLater.toISOString(),
-      currentPeriodEnd: oneMonthLater.toISOString(),
-      stripeCustomerId: 'cus_demo_tsundoku_01',
-      stripeSubscriptionId: 'sub_demo_stripe_trial_01',
-      createdAt: now.toISOString(),
-    },
-    {
-      id: 'sub_demo_02',
-      userId: 'U998bb12c8842d11eef00a1245a9b1c2',
-      userEmail: 'thanakorn.dev@gmail.com',
-      planName: 'Tsundoku Pro (39 บ./เดือน)',
-      status: 'active',
-      trialEndsAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-      currentPeriodEnd: new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-      stripeCustomerId: 'cus_demo_tsundoku_02',
-      stripeSubscriptionId: 'sub_demo_stripe_active_02',
-      createdAt: new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000).toISOString(),
-    }
-  ];
+  globalThis.__tsundokuSubscriptions = [];
 }
 
 export const webhookLogs = globalThis.__tsundokuLogs;
@@ -143,6 +104,30 @@ export function saveSubscription(item: SubscriptionItem) {
   } else {
     subscriptions.unshift(item);
   }
+
+  // Persist to PostgreSQL subscriptions table
+  import('@/src/lib/postgres').then(({ queryPostgres }) => {
+    queryPostgres(`
+      INSERT INTO subscriptions (
+        id, user_id, user_email, plan_name, status, trial_ends_at, current_period_end, stripe_customer_id, stripe_subscription_id, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+      ON CONFLICT (id) DO UPDATE SET
+        status = EXCLUDED.status,
+        trial_ends_at = EXCLUDED.trial_ends_at,
+        current_period_end = EXCLUDED.current_period_end,
+        updated_at = NOW();
+    `, [
+      item.id,
+      item.userId,
+      item.userEmail || null,
+      item.planName,
+      item.status,
+      item.trialEndsAt || null,
+      item.currentPeriodEnd || null,
+      item.stripeCustomerId || null,
+      item.stripeSubscriptionId || null,
+    ]).catch(() => {});
+  });
 }
 
 export async function hydrateLineConfig(): Promise<LineRuntimeConfig> {

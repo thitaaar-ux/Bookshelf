@@ -3,7 +3,7 @@ import { getSchedule, updateSchedule } from '@/lib/serverDb';
 
 export async function GET() {
   try {
-    const schedule = getSchedule();
+    const schedule = await getSchedule();
     return NextResponse.json({
       success: true,
       schedule,
@@ -19,7 +19,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const updated = updateSchedule(body || {});
+    const updated = await updateSchedule(body || {});
     return NextResponse.json({
       success: true,
       message: 'อัปเดตตารางเวลาการอ่านในฐานข้อมูลเซิร์ฟเวอร์เรียบร้อยแล้ว',

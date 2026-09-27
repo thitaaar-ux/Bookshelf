@@ -3,7 +3,7 @@ import { getReadingLogs, addReadingLog } from '@/lib/serverDb';
 
 export async function GET() {
   try {
-    const logs = getReadingLogs();
+    const logs = await getReadingLogs();
     return NextResponse.json({
       success: true,
       count: logs.length,
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const createdLog = addReadingLog(body);
+    const createdLog = await addReadingLog(body);
     return NextResponse.json(
       {
         success: true,

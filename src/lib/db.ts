@@ -62,8 +62,8 @@ function initDefaultSettings(db: DatabaseSync) {
     'line_bot_name': process.env.LINE_BOT_NAME || 'Bunnarak',
     'line_bot_id': process.env.LINE_BOT_ID || '@869uobem',
     'line_channel_id': process.env.LINE_CHANNEL_ID || '2011678531',
-    'line_channel_secret': process.env.LINE_CHANNEL_SECRET || 'fa2f8174939f149782b226a3c75719f7',
-    'line_channel_access_token': process.env.LINE_CHANNEL_ACCESS_TOKEN || '2bsUpUTzOZkHO7RQudYPiaOmgYR/qZz2huW0nsR8wrdzVRfi0AXGsDkv5LREzf7g6VA12tugSFEktoCvQfIn3I3apipaB7rY0CeMWDkRe9WMy1jXXzkEy28UJ8Pb98GsmEqq6wH6ZDdFm1Bxb5yFwAdB04t89/1O/w1cDnyilFU=',
+    'line_channel_secret': process.env.LINE_CHANNEL_SECRET || '',
+    'line_channel_access_token': process.env.LINE_CHANNEL_ACCESS_TOKEN || '',
     'line_target_user_id': process.env.LINE_TARGET_USER_ID || 'U9330ea2a3097a7e8ea7b81a9eeb82088',
     'line_enabled': 'true',
     'line_reminder_days_ahead': '1',
@@ -163,7 +163,16 @@ export function saveLineConfigToDb(config: Partial<DbLineConfig>): DbLineConfig 
 /**
  * ดึงรายการ row ทั้งหมดใน app_settings เพื่อแสดงในหน้า Debug / Backoffice
  */
-export function getAllAppSettingsFromDb(): Array<{ key: string; value: string; updated_at: string }> {
+export async function getAllAppSettingsFromDb(): Promise<Array<{ key: string; value: string; updated_at: string }>> {
+  try {
+    const pgRows = await queryPostgres<{ key: string; value: string; updated_at: string }>(
+      'SELECT key, value, updated_at::text FROM app_settings ORDER BY key ASC'
+    );
+    if (pgRows && pgRows.length > 0) {
+      return pgRows;
+    }
+  } catch {}
+
   try {
     const db = getDatabase();
     const query = db.prepare('SELECT key, value, updated_at FROM app_settings ORDER BY key ASC');

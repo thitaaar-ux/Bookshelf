@@ -1,103 +1,6 @@
 import { Book, Badge, UserSchedule, ReadingLog } from '../types';
 
-export const INITIAL_BOOKS: Book[] = [
-  {
-    id: 'book-1',
-    title: 'Atomic Habits (เพราะชีวิตดีได้กว่าที่เป็น)',
-    author: 'James Clear',
-    totalPages: 320,
-    currentPage: 184,
-    coverEmoji: '⚡',
-    coverUrl: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80',
-    status: 'reading',
-    category: 'Self Development',
-    targetPagesPerDay: 20,
-    targetFinishDate: '2026-10-05',
-    startedAt: '2026-09-10',
-    addedAt: '2026-09-01',
-    notes: 'เน้นเรื่อง 1% better every day และ Habit Stacking'
-  },
-  {
-    id: 'book-2',
-    title: 'Thinking, Fast and Slow',
-    author: 'Daniel Kahneman',
-    totalPages: 499,
-    currentPage: 85,
-    coverEmoji: '🧠',
-    coverUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80',
-    status: 'reading',
-    category: 'Psychology',
-    targetPagesPerDay: 15,
-    targetFinishDate: '2026-10-25',
-    startedAt: '2026-09-14',
-    addedAt: '2026-08-20',
-    notes: 'System 1 vs System 2'
-  },
-  {
-    id: 'book-3',
-    title: 'Designing Data-Intensive Applications',
-    author: 'Martin Kleppmann',
-    totalPages: 616,
-    currentPage: 0,
-    coverEmoji: '💻',
-    coverUrl: 'https://images.unsplash.com/photo-1532012164546-f432f2e3777a?auto=format&fit=crop&w=600&q=80',
-    status: 'backlog',
-    category: 'Technology',
-    targetPagesPerDay: 15,
-    targetFinishDate: '2026-11-15',
-    addedAt: '2026-07-15',
-    notes: 'ซื้อมาดองนาน 2 เดือนแล้ว ต้องเริ่มอ่านบทแรก'
-  },
-  {
-    id: 'book-4',
-    title: 'Deep Work: Rules for Focused Success',
-    author: 'Cal Newport',
-    totalPages: 304,
-    currentPage: 0,
-    coverEmoji: '🎯',
-    coverUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=600&q=80',
-    status: 'backlog',
-    category: 'Productivity',
-    targetPagesPerDay: 20,
-    targetFinishDate: '2026-10-30',
-    addedAt: '2026-08-10',
-    notes: 'ตั้งใจจะอ่านควบคู่กับการจัดเวลา Focus Mode'
-  },
-  {
-    id: 'book-5',
-    title: 'Show Your Work!',
-    author: 'Austin Kleon',
-    totalPages: 224,
-    currentPage: 224,
-    coverEmoji: '🎨',
-    coverUrl: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=600&q=80',
-    status: 'completed',
-    category: 'Creativity',
-    targetPagesPerDay: 30,
-    targetFinishDate: '2026-09-15',
-    startedAt: '2026-09-02',
-    completedAt: '2026-09-12',
-    addedAt: '2026-08-28',
-    notes: 'อ่านจบแล้ว สร้างแรงบันดาลใจในการเขียนบล็อกมาก'
-  },
-  {
-    id: 'book-6',
-    title: 'The Psychology of Money',
-    author: 'Morgan Housel',
-    totalPages: 256,
-    currentPage: 256,
-    coverEmoji: '💰',
-    coverUrl: 'https://images.unsplash.com/photo-1553729459-efe14ef6055d?auto=format&fit=crop&w=600&q=80',
-    status: 'completed',
-    category: 'Finance',
-    targetPagesPerDay: 25,
-    targetFinishDate: '2026-08-30',
-    startedAt: '2026-08-15',
-    completedAt: '2026-08-29',
-    addedAt: '2026-08-01',
-    notes: 'บทเรียนเรื่องอิสรภาพทางการเงิน'
-  }
-];
+export const INITIAL_BOOKS: Book[] = [];
 
 export const INITIAL_SCHEDULE: UserSchedule = {
   reminderDays: ['mon', 'wed', 'fri', 'sun'],
@@ -107,275 +10,10 @@ export const INITIAL_SCHEDULE: UserSchedule = {
   lineConnected: true,
   lineUserId: 'U9330ea2a3097a7e8ea7b81a9eeb82088',
   lineDisplayName: 'Bunnarak',
-  activeBookId: 'book-1'
+  activeBookId: ''
 };
 
-export const INITIAL_READING_LOGS: ReadingLog[] = [
-  {
-    id: 'log-30',
-    bookId: 'book-1',
-    bookTitle: 'Atomic Habits',
-    pagesRead: 20,
-    fromPage: 164,
-    toPage: 184,
-    timestamp: '2026-09-20 20:10',
-    source: 'line_quick_reply',
-    note: 'อ่านช่วงค่ำตามเวลาแจ้งเตือน LINE'
-  },
-  {
-    id: 'log-29',
-    bookId: 'book-1',
-    bookTitle: 'Atomic Habits',
-    pagesRead: 25,
-    fromPage: 139,
-    toPage: 164,
-    timestamp: '2026-09-19 20:45',
-    source: 'web_manual',
-    note: 'อ่านบทที่ 4 เรื่อง Habit Loop'
-  },
-  {
-    id: 'log-28',
-    bookId: 'book-1',
-    bookTitle: 'Atomic Habits',
-    pagesRead: 20,
-    fromPage: 119,
-    toPage: 139,
-    timestamp: '2026-09-18 20:15',
-    source: 'line_quick_reply',
-    note: 'ผ่านปุ่ม Quick Reply: เริ่มอ่านเลย!'
-  },
-  {
-    id: 'log-27',
-    bookId: 'book-1',
-    bookTitle: 'Atomic Habits',
-    pagesRead: 24,
-    fromPage: 95,
-    toPage: 119,
-    timestamp: '2026-09-17 20:30',
-    source: 'web_manual',
-    note: 'อ่านช่วงค่ำ'
-  },
-  {
-    id: 'log-26',
-    bookId: 'book-2',
-    bookTitle: 'Thinking, Fast and Slow',
-    pagesRead: 15,
-    fromPage: 70,
-    toPage: 85,
-    timestamp: '2026-09-16 21:00',
-    source: 'line_quick_reply',
-    note: 'ผ่าน LINE แจ้งเตือน'
-  },
-  {
-    id: 'log-25',
-    bookId: 'book-2',
-    bookTitle: 'Thinking, Fast and Slow',
-    pagesRead: 20,
-    fromPage: 50,
-    toPage: 70,
-    timestamp: '2026-09-15 20:20',
-    source: 'web_manual',
-    note: 'System 1 & System 2 concepts'
-  },
-  {
-    id: 'log-24',
-    bookId: 'book-2',
-    bookTitle: 'Thinking, Fast and Slow',
-    pagesRead: 20,
-    fromPage: 30,
-    toPage: 50,
-    timestamp: '2026-09-14 20:15',
-    source: 'line_quick_reply',
-    note: 'แจ้งเตือนวันจันทร์'
-  },
-  {
-    id: 'log-23',
-    bookId: 'book-2',
-    bookTitle: 'Thinking, Fast and Slow',
-    pagesRead: 15,
-    fromPage: 15,
-    toPage: 30,
-    timestamp: '2026-09-13 21:30',
-    source: 'web_manual',
-    note: 'อ่านวันอาทิตย์'
-  },
-  {
-    id: 'log-22',
-    bookId: 'book-2',
-    bookTitle: 'Thinking, Fast and Slow',
-    pagesRead: 15,
-    fromPage: 0,
-    toPage: 15,
-    timestamp: '2026-09-12 16:00',
-    source: 'web_manual',
-    note: 'เริ่มอ่านเล่มใหม่'
-  },
-  {
-    id: 'log-21',
-    bookId: 'book-1',
-    bookTitle: 'Atomic Habits',
-    pagesRead: 20,
-    fromPage: 75,
-    toPage: 95,
-    timestamp: '2026-09-11 20:00',
-    source: 'line_quick_reply',
-    note: 'ทำเป้าสำเร็จ'
-  },
-  {
-    id: 'log-20',
-    bookId: 'book-1',
-    bookTitle: 'Atomic Habits',
-    pagesRead: 25,
-    fromPage: 50,
-    toPage: 75,
-    timestamp: '2026-09-10 20:30',
-    source: 'web_manual',
-    note: 'กฎข้อที่ 2: ทำให้น่าดึงดูดใจ'
-  },
-  {
-    id: 'log-19',
-    bookId: 'book-1',
-    bookTitle: 'Atomic Habits',
-    pagesRead: 25,
-    fromPage: 25,
-    toPage: 50,
-    timestamp: '2026-09-09 20:05',
-    source: 'line_quick_reply',
-    note: 'อ่านตามเป้าหมาย'
-  },
-  {
-    id: 'log-18',
-    bookId: 'book-1',
-    bookTitle: 'Atomic Habits',
-    pagesRead: 25,
-    fromPage: 0,
-    toPage: 25,
-    timestamp: '2026-09-07 20:15',
-    source: 'web_manual',
-    note: 'เริ่มต้นบทนำและพลังแห่งการเปลี่ยนแปลง 1%'
-  },
-  {
-    id: 'log-17',
-    bookId: 'book-5',
-    bookTitle: 'Steal Like an Artist',
-    pagesRead: 24,
-    fromPage: 200,
-    toPage: 224,
-    timestamp: '2026-09-05 21:00',
-    source: 'line_quick_reply',
-    note: '🎉 อ่านจบเล่มแล้ว!'
-  },
-  {
-    id: 'log-16',
-    bookId: 'book-5',
-    bookTitle: 'Steal Like an Artist',
-    pagesRead: 30,
-    fromPage: 170,
-    toPage: 200,
-    timestamp: '2026-09-04 20:30',
-    source: 'web_manual',
-    note: 'ไอเดียงานสร้างสรรค์'
-  },
-  {
-    id: 'log-15',
-    bookId: 'book-5',
-    bookTitle: 'Steal Like an Artist',
-    pagesRead: 25,
-    fromPage: 145,
-    toPage: 170,
-    timestamp: '2026-09-03 20:10',
-    source: 'line_quick_reply',
-    note: 'อ่านต่อเนื่อง'
-  },
-  {
-    id: 'log-14',
-    bookId: 'book-5',
-    bookTitle: 'Steal Like an Artist',
-    pagesRead: 25,
-    fromPage: 120,
-    toPage: 145,
-    timestamp: '2026-09-02 20:15',
-    source: 'web_manual',
-    note: 'อ่านสะสม'
-  },
-  {
-    id: 'log-13',
-    bookId: 'book-5',
-    bookTitle: 'Steal Like an Artist',
-    pagesRead: 20,
-    fromPage: 100,
-    toPage: 120,
-    timestamp: '2026-08-31 20:20',
-    source: 'line_quick_reply',
-    note: 'ทำเป้าประจำวัน'
-  },
-  {
-    id: 'log-12',
-    bookId: 'book-6',
-    bookTitle: 'The Psychology of Money',
-    pagesRead: 26,
-    fromPage: 230,
-    toPage: 256,
-    timestamp: '2026-08-29 21:30',
-    source: 'line_quick_reply',
-    note: '🎉 อ่านจบเล่ม The Psychology of Money'
-  },
-  {
-    id: 'log-11',
-    bookId: 'book-6',
-    bookTitle: 'The Psychology of Money',
-    pagesRead: 25,
-    fromPage: 205,
-    toPage: 230,
-    timestamp: '2026-08-28 20:15',
-    source: 'web_manual',
-    note: 'บทสรุปเรื่องอิสรภาพทางการเงิน'
-  },
-  {
-    id: 'log-10',
-    bookId: 'book-6',
-    bookTitle: 'The Psychology of Money',
-    pagesRead: 20,
-    fromPage: 185,
-    toPage: 205,
-    timestamp: '2026-08-26 20:05',
-    source: 'line_quick_reply',
-    note: 'อ่านผ่านการเตือน'
-  },
-  {
-    id: 'log-9',
-    bookId: 'book-6',
-    bookTitle: 'The Psychology of Money',
-    pagesRead: 25,
-    fromPage: 160,
-    toPage: 185,
-    timestamp: '2026-08-25 20:30',
-    source: 'web_manual',
-    note: 'บทเรื่องความมั่งคั่งคือสิ่งที่คุณมองไม่เห็น'
-  },
-  {
-    id: 'log-8',
-    bookId: 'book-6',
-    bookTitle: 'The Psychology of Money',
-    pagesRead: 20,
-    fromPage: 140,
-    toPage: 160,
-    timestamp: '2026-08-23 20:00',
-    source: 'line_quick_reply',
-    note: 'อ่านวันอาทิตย์'
-  },
-  {
-    id: 'log-7',
-    bookId: 'book-6',
-    bookTitle: 'The Psychology of Money',
-    pagesRead: 25,
-    fromPage: 115,
-    toPage: 140,
-    timestamp: '2026-08-22 19:45',
-    source: 'web_manual',
-    note: 'อ่านต่อเนื่อง 25 หน้า'
-  }
-];
+export const INITIAL_READING_LOGS: ReadingLog[] = [];
 
 export const INITIAL_BADGES: Badge[] = [
   {
@@ -384,11 +22,10 @@ export const INITIAL_BADGES: Badge[] = [
     nameTh: 'ผู้ทลายกองดอง',
     description: 'อ่านหนังสือที่เคยดองไว้จนจบครบ 2 เล่ม',
     icon: 'Sword',
-    unlocked: true,
-    unlockedAt: '2026-09-12',
+    unlocked: false,
     category: 'clearance',
     requiredCount: 2,
-    currentCount: 2
+    currentCount: 0
   },
   {
     id: 'badge-streak-7',
@@ -396,11 +33,10 @@ export const INITIAL_BADGES: Badge[] = [
     nameTh: 'อ่านต่อเนื่อง 7 วัน',
     description: 'รักษา Streak อ่านหนังสือติดต่อกัน 7 วันไม่มีสะดุด',
     icon: 'Flame',
-    unlocked: true,
-    unlockedAt: '2026-09-18',
+    unlocked: false,
     category: 'streak',
     requiredCount: 7,
-    currentCount: 7
+    currentCount: 0
   },
   {
     id: 'badge-century',
@@ -408,11 +44,10 @@ export const INITIAL_BADGES: Badge[] = [
     nameTh: 'เซนจูเรียน 100 หน้า',
     description: 'อ่านสะสมรวมเกิน 100 หน้าในสัปดาห์เดียว',
     icon: 'Zap',
-    unlocked: true,
-    unlockedAt: '2026-09-15',
+    unlocked: false,
     category: 'volume',
     requiredCount: 100,
-    currentCount: 145
+    currentCount: 0
   },
   {
     id: 'badge-quick-replier',

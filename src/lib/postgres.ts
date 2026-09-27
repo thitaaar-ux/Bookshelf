@@ -26,14 +26,18 @@ export function getPostgresConfig(): {
   database: string;
   user: string;
 } {
-  const connectionString =
-    process.env.DATABASE_URL ||
-    'postgresql://bookshelf_app:9i3rehIpjV3udEzwhtnUKHK4PtQD3qiK@210.246.215.195:5433/bookshelf';
-
   const host = process.env.POSTGRES_HOST || '210.246.215.195';
   const port = Number(process.env.POSTGRES_PORT) || 5433;
   const database = process.env.POSTGRES_DB || 'bookshelf';
   const user = process.env.POSTGRES_USER || 'bookshelf_app';
+  const password = process.env.POSTGRES_PASSWORD;
+  const connectionString =
+    process.env.DATABASE_URL ||
+    (password ? `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${database}` : '');
+
+  if (!connectionString) {
+    throw new Error('DATABASE_URL or POSTGRES_PASSWORD is required for PostgreSQL');
+  }
 
   return { connectionString, host, port, database, user };
 }
@@ -151,43 +155,101 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
     const client = await pool.connect();
     try {
       await client.query(`
+        CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
         CREATE TABLE IF NOT EXISTS app_settings (
           key TEXT PRIMARY KEY,
           value TEXT NOT NULL,
           updated_at TIMESTAMPTZ DEFAULT NOW()
         );
 
-        CREATE TABLE IF NOT EXISTS books (
-          id TEXT PRIMARY KEY,
-          title TEXT NOT NULL,
-          author TEXT,
-          total_pages INT NOT NULL DEFAULT 0,
-          current_page INT NOT NULL DEFAULT 0,
-          status TEXT DEFAULT 'backlog',
-          category TEXT DEFAULT 'General',
-          target_pages_per_day INT DEFAULT 20,
-          target_finish_date TEXT,
-          cover_emoji TEXT DEFAULT '📚',
-          cover_url TEXT,
-          notes TEXT,
-          started_at TEXT,
-          completed_at TEXT,
-          added_at TEXT,
+        CREATE TABLE IF NOT EXISTS users (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          email TEXT UNIQUE,
+          display_name TEXT NOT NULL,
+          avatar_url TEXT,
+          line_user_id TEXT UNIQUE,
+          line_connected BOOLEAN DEFAULT FALSE,
+          reminder_days TEXT[] DEFAULT ARRAY['mon', 'wed', 'fri'],
+          reminder_time TIME DEFAULT '20:00:00',
+          snooze_minutes INT DEFAULT 30,
+          daily_goal_pages INT DEFAULT 20,
+          current_streak INT DEFAULT 0,
+          longest_streak INT DEFAULT 0,
+          last_active_date DATE,
           created_at TIMESTAMPTZ DEFAULT NOW(),
           updated_at TIMESTAMPTZ DEFAULT NOW()
         );
 
+        DO $$ BEGIN
+          CREATE TYPE book_status_enum AS ENUM ('backlog', 'reading', 'completed', 'dropped');
+        EXCEPTION
+          WHEN duplicate_object THEN null;
+        END $$;
+
+        CREATE TABLE IF NOT EXISTS books (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+          author TEXT,
+          cover_url TEXT,
+          cover_emoji TEXT DEFAULT '📚',
+          total_pages INT NOT NULL CHECK (total_pages > 0),
+          current_page INT NOT NULL DEFAULT 0 CHECK (current_page >= 0),
+          status book_status_enum DEFAULT 'backlog',
+          category TEXT DEFAULT 'General',
+          target_pages_per_day INT DEFAULT 20,
+          target_finish_date DATE,
+          started_at TIMESTAMPTZ,
+          completed_at TIMESTAMPTZ,
+          notes TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW(),
+          CONSTRAINT valid_page_progress CHECK (current_page <= total_pages)
+        );
+
         CREATE TABLE IF NOT EXISTS reading_logs (
-          id TEXT PRIMARY KEY,
-          book_id TEXT,
-          book_title TEXT,
-          pages_read INT NOT NULL,
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          book_id UUID NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+          pages_read INT NOT NULL CHECK (pages_read > 0),
           from_page INT NOT NULL,
           to_page INT NOT NULL,
-          timestamp TEXT,
-          source TEXT DEFAULT 'web_manual',
+          source TEXT DEFAULT 'line_quick_reply',
           note TEXT,
           created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS scheduled_notifications (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          book_id UUID REFERENCES books(id) ON DELETE SET NULL,
+          scheduled_for TIMESTAMPTZ NOT NULL,
+          status TEXT DEFAULT 'pending',
+          notification_type TEXT DEFAULT 'daily_reminder',
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS subscriptions (
+          id TEXT PRIMARY KEY,
+          user_id TEXT NOT NULL,
+          user_email TEXT,
+          plan_name TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'trialing',
+          trial_ends_at TIMESTAMPTZ,
+          current_period_end TIMESTAMPTZ,
+          stripe_customer_id TEXT,
+          stripe_subscription_id TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS user_badges (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+          badge_id TEXT NOT NULL,
+          unlocked_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(user_id, badge_id)
         );
 
         CREATE TABLE IF NOT EXISTS webhook_logs (
@@ -196,13 +258,46 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
           source TEXT,
           event_type TEXT,
           user_id TEXT,
-          payload TEXT,
+          payload JSONB,
           bot_reply TEXT,
           created_at TIMESTAMPTZ DEFAULT NOW()
         );
+
+        CREATE TABLE IF NOT EXISTS user_storage (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          file_key TEXT NOT NULL UNIQUE,
+          file_name TEXT NOT NULL,
+          file_size INT NOT NULL CHECK (file_size > 0),
+          mime_type TEXT NOT NULL,
+          url TEXT NOT NULL,
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_books_user_status ON books(user_id, status);
+        CREATE INDEX IF NOT EXISTS idx_reading_logs_user_date ON reading_logs(user_id, created_at);
+        CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
+        CREATE INDEX IF NOT EXISTS idx_user_storage_user ON user_storage(user_id);
+
+        INSERT INTO users (
+          id, email, display_name, line_user_id, line_connected,
+          reminder_days, reminder_time, snooze_minutes, daily_goal_pages
+        )
+        VALUES (
+          'a0000000-0000-0000-0000-000000000001',
+          'reader@bunnarak.site',
+          'Bunnarak',
+          NULL,
+          FALSE,
+          ARRAY['mon', 'wed', 'fri'],
+          '20:00:00',
+          30,
+          20
+        )
+        ON CONFLICT (id) DO NOTHING;
       `);
 
-      return { success: true, message: 'สร้างตาราง PostgreSQL สำเร็จเรียบร้อย' };
+      return { success: true, message: 'สร้างตาราง PostgreSQL ทั้ง 9 ตารางรองรับระบบและรูปภาพ 100% เรียบร้อย' };
     } finally {
       client.release();
     }

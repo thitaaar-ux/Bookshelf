@@ -106,10 +106,13 @@ export const AdminDatabaseTab: React.FC<AdminDatabaseTabProps> = ({ onShowToast 
   const hbaSnippet = `host    ${status?.config?.database || 'bookshelf'}    ${status?.config?.user || 'bookshelf_app'}    ${clientIp}/32    md5`;
   const hbaAllSnippet = `host    all    all    0.0.0.0/0    md5`;
 
-  const rawUrl = 'postgresql://bookshelf_app:9i3rehIpjV3udEzwhtnUKHK4PtQD3qiK@210.246.215.195:5433/bookshelf';
+  const dbUser = status?.config?.user || 'bookshelf_app';
+  const dbHost = status?.config?.host || '210.246.215.195';
+  const dbPort = status?.config?.port || 5433;
+  const dbName = status?.config?.database || 'bookshelf';
   const maskedUrl = showPassword
-    ? rawUrl
-    : 'postgresql://bookshelf_app:••••••••••••••••••••••••••••••••@210.246.215.195:5433/bookshelf';
+    ? `postgresql://${dbUser}:********@${dbHost}:${dbPort}/${dbName}`
+    : `postgresql://${dbUser}:********@${dbHost}:${dbPort}/${dbName}`;
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -229,7 +232,7 @@ export const AdminDatabaseTab: React.FC<AdminDatabaseTabProps> = ({ onShowToast 
               <button
                 type="button"
                 onClick={() => {
-                  navigator.clipboard.writeText(rawUrl);
+                  navigator.clipboard.writeText(maskedUrl);
                   setCopiedUrl(true);
                   setTimeout(() => setCopiedUrl(false), 2000);
                   onShowToast?.('คัดลอก DATABASE_URL แล้ว');

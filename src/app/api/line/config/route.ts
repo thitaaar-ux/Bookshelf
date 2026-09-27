@@ -1,10 +1,23 @@
 import { NextResponse } from 'next/server';
-import { lineConfig, updateLineConfig } from '@/src/lib/serverState';
+import { hydrateLineConfig, updateLineConfig } from '@/src/lib/serverState';
 import { getAllAppSettingsFromDb, getDbStatus } from '@/src/lib/db';
 
+const SENSITIVE_SETTING_KEYS = ['secret', 'token', 'password'];
+
+function isSensitiveSetting(key: string) {
+  return SENSITIVE_SETTING_KEYS.some((needle) => key.toLowerCase().includes(needle));
+}
+
+function maskSettingValue(key: string, value: string) {
+  if (!isSensitiveSetting(key)) return value;
+  if (!value) return '';
+  return '********';
+}
+
 export async function GET() {
+  const lineConfig = await hydrateLineConfig();
   const dbStatus = await getDbStatus();
-  const dbRows = getAllAppSettingsFromDb();
+  const dbRows = await getAllAppSettingsFromDb();
 
   return NextResponse.json({
     hasToken: Boolean(lineConfig?.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN),
@@ -12,15 +25,18 @@ export async function GET() {
     botName: lineConfig?.botName || process.env.LINE_BOT_NAME || 'Bunnarak',
     botBasicId: lineConfig?.botBasicId || process.env.LINE_BOT_ID || '@869uobem',
     channelId: lineConfig?.channelId || process.env.LINE_CHANNEL_ID || '2011678531',
-    channelAccessToken: lineConfig?.channelAccessToken || process.env.LINE_CHANNEL_ACCESS_TOKEN || '',
-    channelSecret: lineConfig?.channelSecret || process.env.LINE_CHANNEL_SECRET || '',
+    channelAccessToken: '',
+    channelSecret: '',
     targetUserId: lineConfig?.targetUserId || process.env.LINE_TARGET_USER_ID || 'U9330ea2a3097a7e8ea7b81a9eeb82088',
     enabled: lineConfig?.enabled ?? true,
     reminderDaysAhead: lineConfig?.reminderDaysAhead ?? 1,
     latestCapturedUser: lineConfig?.latestCapturedUser,
     storageType: dbStatus.activeDriver,
-    dbFile: 'data/tsundoku.db',
-    dbRows,
+    dbFile: dbStatus.activeDriver === 'PostgreSQL' ? 'postgresql://.../bookshelf' : 'data/tsundoku.db',
+    dbRows: dbRows.map((row) => ({
+      ...row,
+      value: maskSettingValue(row.key, row.value),
+    })),
     postgresStatus: dbStatus.postgres,
   });
 }
@@ -72,7 +88,11 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: 'บันทึกการตั้งค่า LINE ลงฐานข้อมูลสำเร็จ',
-      config: saved,
+      config: {
+        ...saved,
+        channelAccessToken: saved.channelAccessToken ? '********' : '',
+        channelSecret: saved.channelSecret ? '********' : '',
+      },
     });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message }, { status: 400 });
