@@ -274,11 +274,6 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
           created_at TIMESTAMPTZ DEFAULT NOW()
         );
 
-        CREATE INDEX IF NOT EXISTS idx_books_user_status ON books(user_id, status);
-        CREATE INDEX IF NOT EXISTS idx_reading_logs_user_date ON reading_logs(user_id, created_at);
-        CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
-        CREATE INDEX IF NOT EXISTS idx_user_storage_user ON user_storage(user_id);
-
         INSERT INTO users (
           id, email, display_name, line_user_id, line_connected,
           reminder_days, reminder_time, snooze_minutes, daily_goal_pages
@@ -296,6 +291,21 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
         )
         ON CONFLICT (id) DO NOTHING;
       `);
+
+      const indexStatements = [
+        'CREATE INDEX IF NOT EXISTS idx_books_user_status ON books(user_id, status);',
+        'CREATE INDEX IF NOT EXISTS idx_reading_logs_user_date ON reading_logs(user_id, created_at);',
+        'CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);',
+        'CREATE INDEX IF NOT EXISTS idx_user_storage_user ON user_storage(user_id);',
+      ];
+
+      for (const statement of indexStatements) {
+        try {
+          await client.query(statement);
+        } catch (err: any) {
+          console.warn(`Skipping PostgreSQL index creation: ${err?.message || err}`);
+        }
+      }
 
       return { success: true, message: 'สร้างตาราง PostgreSQL ทั้ง 9 ตารางรองรับระบบและรูปภาพ 100% เรียบร้อย' };
     } finally {
