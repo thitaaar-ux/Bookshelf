@@ -5,17 +5,18 @@ import { Book, UserSchedule } from '../types';
 interface TsundokuHeroProps {
   books: Book[];
   schedule: UserSchedule;
-  onOpenLineSimulator: () => void;
+  onOpenLineSimulator?: () => void;
   onQuickLog: () => void;
   onViewCharts?: () => void;
+  onOpenLogin?: () => void;
 }
 
 export const TsundokuHero: React.FC<TsundokuHeroProps> = ({
   books,
   schedule,
-  onOpenLineSimulator,
   onQuickLog,
-  onViewCharts
+  onViewCharts,
+  onOpenLogin
 }) => {
   const readingBooks = books.filter(b => b.status === 'reading');
   const backlogBooks = books.filter(b => b.status === 'backlog');
@@ -224,14 +225,15 @@ export const TsundokuHero: React.FC<TsundokuHeroProps> = ({
                     <span>ข้อมูลกราฟการอ่าน</span>
                   </button>
                 )}
-                <button
-                  id="hero-test-line-alert-btn"
-                  onClick={onOpenLineSimulator}
-                  className="text-xs text-neutral-300 hover:text-white font-medium flex items-center space-x-1 transition cursor-pointer"
-                >
-                  <Bell className="w-3 h-3 text-emerald-400" />
-                  <span>ทดสอบ LINE</span>
-                </button>
+                {onOpenLogin && (
+                  <button
+                    id="hero-login-btn"
+                    onClick={onOpenLogin}
+                    className="text-xs text-neutral-300 hover:text-white font-medium flex items-center space-x-1 transition cursor-pointer"
+                  >
+                    <span>เข้าสู่ระบบ</span>
+                  </button>
+                )}
                 <button
                   id="hero-quick-log-btn"
                   onClick={onQuickLog}

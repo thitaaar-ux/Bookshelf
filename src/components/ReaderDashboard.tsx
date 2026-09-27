@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Book, ReadingLog, UserSchedule } from '../types';
+import { Book, ReadingLog, UserSchedule, UserProfile } from '../types';
 import { 
   INITIAL_BOOKS, INITIAL_SCHEDULE, INITIAL_READING_LOGS 
 } from '../data/initialData';
 import { SidebarNav } from './SidebarNav';
 import { BookManagement } from './BookManagement';
 import { ReadingProgressChart } from './ReadingProgressChart';
-import { LineSimulatorModal } from './LineSimulatorModal';
 import { SchedulerSettingsModal } from './SchedulerSettingsModal';
+import { LoginModal } from './LoginModal';
 import { 
   TrendingUp, 
   BookOpen, 
@@ -22,13 +22,17 @@ import {
   ChevronRight, 
   ArrowUpRight, 
   Clock, 
-  X,
-  Target,
-  Layers,
-  Award,
-  Edit3,
-  Database,
-  Image as ImageIcon
+  X, 
+  Target, 
+  Layers, 
+  Award, 
+  Edit3, 
+  Database, 
+  Image as ImageIcon,
+  LogIn,
+  User,
+  ShieldCheck,
+  LogOut
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'motion/react';
@@ -44,7 +48,8 @@ export default function ReaderDashboard() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'library' | 'charts'>('dashboard');
 
   // Modals state
-  const [isLineSimOpen, setIsLineSimOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isSchedulerOpen, setIsSchedulerOpen] = useState(false);
   const [isQuickLogModalOpen, setIsQuickLogModalOpen] = useState(false);
   const [isAddBookModalOpen, setIsAddBookModalOpen] = useState(false);
@@ -56,6 +61,22 @@ export default function ReaderDashboard() {
     const timer = setTimeout(() => setToastMessage(null), 3500);
     return () => clearTimeout(timer);
   }, [toastMessage]);
+
+  const handleLogin = (user: UserProfile) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('tsundoku_user', JSON.stringify(user));
+    } catch {}
+    setToastMessage(`ยินดีต้อนรับ ${user.name}! เข้าสู่ระบบเรียบร้อย`);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    try {
+      localStorage.removeItem('tsundoku_user');
+    } catch {}
+    setToastMessage('ออกจากระบบเรียบร้อยแล้ว');
+  };
 
   // Manual Quick Log Form
   const [pagesToLog, setPagesToLog] = useState(15);
@@ -75,6 +96,9 @@ export default function ReaderDashboard() {
   useEffect(() => {
     // 1. Initial local load for instant paint
     try {
+      const savedUser = localStorage.getItem('tsundoku_user');
+      if (savedUser) setCurrentUser(JSON.parse(savedUser));
+
       const savedBooks = localStorage.getItem('tsundoku_books');
       if (savedBooks) setBooks(JSON.parse(savedBooks));
 
@@ -303,12 +327,14 @@ export default function ReaderDashboard() {
       <SidebarNav
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenLineSimulator={() => setIsLineSimOpen(true)}
         onOpenScheduler={() => setIsSchedulerOpen(true)}
         onOpenAddBook={() => {
           setEditingBook(null);
           setIsAddBookModalOpen(true);
         }}
+        currentUser={currentUser}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
+        onLogout={handleLogout}
       />
 
       {/* 2. Main Content Area with blueprint-grid background */}
@@ -333,7 +359,32 @@ export default function ReaderDashboard() {
                   I&apos;m your <span style={{ color: 'var(--accent)' }}>Bunnarak</span>
                 </h1>
               </div>
-              <div className="shrink-0">
+              <div className="shrink-0 flex items-center gap-3">
+                {currentUser ? (
+                  <button
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="btn py-2.5 px-3.5 text-xs flex items-center gap-2 shadow-[4px_4px_0_#121212] font-mono cursor-pointer bg-white border-2 border-[#121212] hover:bg-neutral-50 active:translate-x-0.5 active:translate-y-0.5 transition"
+                    title="คลิกเพื่อจัดการโปรไฟล์"
+                  >
+                    {currentUser.pictureUrl ? (
+                      <img src={currentUser.pictureUrl} alt={currentUser.name} className="w-4 h-4 object-cover" />
+                    ) : (
+                      <User className="w-3.5 h-3.5 text-emerald-600" />
+                    )}
+                    <span className="font-bold">{currentUser.name}</span>
+                  </button>
+                ) : (
+                  <button
+                    id="hero-login-button"
+                    type="button"
+                    onClick={() => setIsLoginModalOpen(true)}
+                    className="btn py-2.5 px-3.5 text-xs flex items-center gap-2 shadow-[4px_4px_0_#121212] font-mono font-bold cursor-pointer bg-white hover:bg-neutral-100 border-2 border-[#121212] active:translate-x-0.5 active:translate-y-0.5 transition"
+                  >
+                    <LogIn className="w-3.5 h-3.5 text-[#ff4d00]" />
+                    <span>เข้าสู่ระบบ</span>
+                  </button>
+                )}
+
                 <button
                   id="hero-add-book-btn"
                   type="button"
@@ -449,12 +500,6 @@ export default function ReaderDashboard() {
                     >
                       <Edit3 className="w-3 h-3" />
                       <span>แก้ไข / เปลี่ยนรูป</span>
-                    </button>
-                    <button
-                      onClick={() => setIsLineSimOpen(true)}
-                      className="btn text-[11px] py-1.5 px-3"
-                    >
-                      ส่งแจ้งเตือน LINE
                     </button>
                     <button
                       onClick={() => {
@@ -617,18 +662,28 @@ export default function ReaderDashboard() {
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
-                  <button
-                    onClick={() => setIsLineSimOpen(true)}
-                    className="btn btn-primary flex-1 text-xs py-2"
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>เปิดหน้าต่างจำลอง LINE</span>
-                  </button>
+                  {!currentUser ? (
+                    <button
+                      onClick={() => setIsLoginModalOpen(true)}
+                      className="btn btn-primary flex-1 text-xs py-2 flex items-center justify-center gap-1.5"
+                    >
+                      <LogIn className="w-3.5 h-3.5" />
+                      <span>เข้าสู่ระบบเพื่อเชื่อมต่อ LINE</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsSchedulerOpen(true)}
+                      className="btn btn-primary flex-1 text-xs py-2 flex items-center justify-center gap-1.5"
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>ปรับเปลี่ยนเวลาแจ้งเตือน</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => setIsSchedulerOpen(true)}
                     className="btn text-xs py-2 px-4"
                   >
-                    ตั้งค่าเวลา
+                    ตั้งค่า
                   </button>
                 </div>
               </div>
@@ -817,13 +872,12 @@ export default function ReaderDashboard() {
       </AnimatePresence>
 
       {/* Interactive Modals */}
-      <LineSimulatorModal
-        isOpen={isLineSimOpen}
-        onClose={() => setIsLineSimOpen(false)}
-        schedule={schedule}
-        activeBook={activeBook}
-        onQuickLogPages={handleQuickLogPages}
-        onUpdateSchedule={saveSchedule}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        currentUser={currentUser}
+        onLogin={handleLogin}
+        onLogout={handleLogout}
       />
 
       <SchedulerSettingsModal

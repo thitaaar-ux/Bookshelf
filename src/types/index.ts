@@ -1,5 +1,16 @@
 export type BookStatus = 'reading' | 'backlog' | 'completed';
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email?: string;
+  lineUserId?: string;
+  pictureUrl?: string;
+  role: 'member' | 'pro' | 'admin';
+  streakDays: number;
+  joinedAt: string;
+}
+
 export interface Book {
   id: string;
   title: string;

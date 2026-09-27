@@ -1,12 +1,15 @@
 import React from 'react';
-import { BookOpen, Bell, MessageSquare, Calendar, ShieldCheck, TrendingUp } from 'lucide-react';
+import { BookOpen, Calendar, TrendingUp, LogIn, User, LogOut } from 'lucide-react';
+import { UserProfile } from '../types';
 
 interface HeaderProps {
   activeTab?: 'dashboard' | 'charts' | 'library' | 'architecture';
   setActiveTab: (tab: 'dashboard' | 'charts' | 'library' | 'architecture') => void;
-  onOpenLineSimulator: () => void;
   onOpenScheduler: () => void;
   onOpenBackoffice?: () => void;
+  onOpenLogin?: () => void;
+  onLogout?: () => void;
+  currentUser?: UserProfile | null;
   lineConnected: boolean;
   clearanceRate: number;
   streakCount: number;
@@ -15,10 +18,10 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
-  onOpenLineSimulator,
   onOpenScheduler,
-  onOpenBackoffice,
-  lineConnected,
+  onOpenLogin,
+  onLogout,
+  currentUser,
   clearanceRate,
   streakCount
 }) => {
@@ -92,18 +95,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="font-mono font-bold text-white">{clearanceRate}%</span>
             </button>
 
-            {/* LINE Bot Simulator trigger button */}
-            <button
-              id="header-btn-line"
-              onClick={onOpenLineSimulator}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-900/30 text-xs font-medium transition cursor-pointer shadow-sm"
-              title="เปิดจำลองการแจ้งเตือนและการตอบกลับ LINE Quick Reply"
-            >
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="hidden sm:inline">จำลอง LINE Bot</span>
-              <span className="sm:hidden">LINE</span>
-            </button>
-
             {/* Scheduler button */}
             <button
               id="header-btn-scheduler"
@@ -113,6 +104,27 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Calendar className="w-4 h-4" />
             </button>
+
+            {/* Login / User button */}
+            {currentUser ? (
+              <button
+                id="header-user-btn"
+                onClick={onOpenLogin}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 border border-neutral-700 text-neutral-100 hover:bg-neutral-700 text-xs font-medium transition cursor-pointer"
+              >
+                <User className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="max-w-[100px] truncate">{currentUser.name}</span>
+              </button>
+            ) : (
+              <button
+                id="header-login-btn"
+                onClick={onOpenLogin}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold text-xs transition cursor-pointer shadow-sm"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>เข้าสู่ระบบ</span>
+              </button>
+            )}
           </div>
 
         </div>
