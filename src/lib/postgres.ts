@@ -168,6 +168,7 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
           email TEXT UNIQUE,
           display_name TEXT NOT NULL,
           avatar_url TEXT,
+          google_id TEXT UNIQUE,
           line_user_id TEXT UNIQUE,
           line_connected BOOLEAN DEFAULT FALSE,
           reminder_days TEXT[] DEFAULT ARRAY['mon', 'wed', 'fri'],
@@ -180,6 +181,8 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
           created_at TIMESTAMPTZ DEFAULT NOW(),
           updated_at TIMESTAMPTZ DEFAULT NOW()
         );
+
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT;
 
         DO $$ BEGIN
           CREATE TYPE book_status_enum AS ENUM ('backlog', 'reading', 'completed', 'dropped');
@@ -293,6 +296,7 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
       `);
 
       const indexStatements = [
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;',
         'CREATE INDEX IF NOT EXISTS idx_books_user_status ON books(user_id, status);',
         'CREATE INDEX IF NOT EXISTS idx_reading_logs_user_date ON reading_logs(user_id, created_at);',
         'CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);',

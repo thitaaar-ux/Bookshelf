@@ -32,16 +32,56 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onLogin,
   onLogout,
 }) => {
-  const [activeTab, setActiveTab] = useState<'line' | 'email'>('line');
+  const [activeTab, setActiveTab] = useState<'line' | 'google' | 'email'>('line');
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [googleEmail, setGoogleEmail] = useState('');
   const [customLineId, setCustomLineId] = useState('U9330ea2a3097a7e8ea7b81a9eeb82088');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
+
+  const handleGoogleAuth = async () => {
+    setIsLoading(true);
+    setErrorMessage('');
+
+    try {
+      const res = await fetch('/api/auth/google');
+      const data = await res.json();
+
+      if (data.configured && data.url) {
+        // Redirect to live Google OAuth consent screen
+        window.location.href = data.url;
+        return;
+      }
+
+      // If GOOGLE_CLIENT_ID is not yet filled in .env.local, use ready fallback
+      const loginRes = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: googleEmail.trim() || 'reader.google@example.com',
+          name: name.trim() || 'คุณนักอ่าน Google',
+          demo: true,
+        }),
+      });
+      const loginData = await loginRes.json();
+      if (loginData.success && loginData.user) {
+        onLogin(loginData.user);
+        setIsLoading(false);
+        onClose();
+      } else {
+        setErrorMessage(loginData.error || 'เข้าสู่ระบบด้วย Google ไม่สำเร็จ');
+        setIsLoading(false);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ Google');
+      setIsLoading(false);
+    }
+  };
 
   const handleLineLogin = (overrideLineId?: string, overrideName?: string) => {
     setIsLoading(true);
@@ -95,7 +135,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }, 400);
   };
 
-  const handleQuickDemoLogin = (type: 'reader' | 'admin') => {
+  const handleQuickDemoLogin = (type: 'reader' | 'admin' | 'google') => {
     setIsLoading(true);
     setTimeout(() => {
       if (type === 'admin') {
@@ -108,6 +148,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           streakDays: 24,
           joinedAt: '2026-01-15',
           pictureUrl: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
+        });
+      } else if (type === 'google') {
+        onLogin({
+          id: 'google-demo',
+          name: 'Google Reader (ทดสอบ)',
+          email: 'reader.google@example.com',
+          role: 'member',
+          streakDays: 12,
+          joinedAt: '2026-03-10',
+          pictureUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
         });
       } else {
         onLogin({
@@ -226,31 +276,49 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           /* Login Form with Tabs */
           <div className="p-6">
             {/* Tab switchers */}
-            <div className="grid grid-cols-2 gap-2 mb-6 border-b-2 border-[#121212] pb-3">
+            <div className="grid grid-cols-3 gap-1.5 mb-6 border-b-2 border-[#121212] pb-3">
               <button
                 type="button"
                 onClick={() => setActiveTab('line')}
-                className={`py-2 px-3 text-xs font-bold font-mono transition cursor-pointer border-2 border-[#121212] flex items-center justify-center gap-2 ${
+                className={`py-2 px-2 text-xs font-bold font-mono transition cursor-pointer border-2 border-[#121212] flex items-center justify-center gap-1.5 ${
                   activeTab === 'line'
                     ? 'bg-[#06c755] text-white shadow-[3px_3px_0_#121212]'
                     : 'bg-white text-[#121212] hover:bg-neutral-100'
                 }`}
               >
-                <span className="w-2.5 h-2.5 rounded-full bg-white"></span>
-                <span>LINE Login</span>
+                <span className="w-2 h-2 rounded-full bg-white shrink-0"></span>
+                <span className="truncate">LINE</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('google')}
+                className={`py-2 px-2 text-xs font-bold font-mono transition cursor-pointer border-2 border-[#121212] flex items-center justify-center gap-1.5 ${
+                  activeTab === 'google'
+                    ? 'bg-white text-[#121212] shadow-[3px_3px_0_#4285F4] border-[#4285F4]'
+                    : 'bg-white text-[#121212] hover:bg-neutral-100'
+                }`}
+              >
+                <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+                <span className="truncate">Google</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveTab('email')}
-                className={`py-2 px-3 text-xs font-bold font-mono transition cursor-pointer border-2 border-[#121212] flex items-center justify-center gap-2 ${
+                className={`py-2 px-2 text-xs font-bold font-mono transition cursor-pointer border-2 border-[#121212] flex items-center justify-center gap-1.5 ${
                   activeTab === 'email'
                     ? 'bg-[#121212] text-[#f8f7f4] shadow-[3px_3px_0_#ff4d00]'
                     : 'bg-white text-[#121212] hover:bg-neutral-100'
                 }`}
               >
-                <Mail className="w-3.5 h-3.5" />
-                <span>อีเมล / บัญชี</span>
+                <Mail className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">อีเมล</span>
               </button>
             </div>
 
@@ -316,7 +384,43 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               </div>
             )}
 
-            {/* Tab 2: Email Authentication */}
+            {/* Tab 2: Google Authentication */}
+            {activeTab === 'google' && (
+              <div className="space-y-4">
+                <div className="p-3.5 bg-blue-50 border border-blue-200 text-neutral-800 text-xs space-y-1.5">
+                  <div className="font-bold flex items-center gap-1.5 text-blue-900">
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                    </svg>
+                    <span>เข้าสู่ระบบด้วย Google Account</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-600 leading-relaxed">
+                    คลิกปุ่มด้านล่างเพื่อเลือกบัญชี Google และเข้าใช้งานได้ทันที ไม่ต้องกรอกข้อมูลใดๆ
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleGoogleAuth}
+                  disabled={isLoading}
+                  className="w-full py-3.5 px-4 bg-white hover:bg-neutral-50 text-[#121212] font-bold text-xs uppercase flex items-center justify-center gap-2.5 border-2 border-[#121212] shadow-[4px_4px_0_#121212] active:translate-x-0.5 active:translate-y-0.5 transition cursor-pointer"
+                >
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span>{isLoading ? 'กำลังเชื่อมต่อ Google...' : 'เข้าสู่ระบบด้วย Google'}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* Tab 3: Email Authentication */}
             {activeTab === 'email' && (
               <form onSubmit={handleEmailAuth} className="space-y-3.5">
                 {isRegisterMode && (
@@ -388,7 +492,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <span className="block text-[10px] font-mono uppercase text-neutral-500 font-bold mb-2">
                 ⚡ ทดสอบเข้าสู่ระบบแบบด่วน (1-Click Login):
               </span>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => handleQuickDemoLogin('reader')}
@@ -400,11 +504,25 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <button
                   type="button"
+                  onClick={() => handleQuickDemoLogin('google')}
+                  className="py-1.5 px-2 bg-white border border-[#121212] text-[11px] font-mono text-left hover:bg-neutral-100 flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0_#121212]"
+                >
+                  <svg className="w-3 h-3 shrink-0" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                  </svg>
+                  <span className="truncate">Google</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => handleQuickDemoLogin('admin')}
                   className="py-1.5 px-2 bg-white border border-[#121212] text-[11px] font-mono text-left hover:bg-neutral-100 flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0_#121212]"
                 >
                   <ShieldCheck className="w-3 h-3 text-purple-600 shrink-0" />
-                  <span className="truncate">แอดมิน (Admin)</span>
+                  <span className="truncate">แอดมิน</span>
                 </button>
               </div>
             </div>

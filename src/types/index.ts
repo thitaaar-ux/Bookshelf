@@ -4,6 +4,7 @@ export interface UserProfile {
   id: string;
   name: string;
   email?: string;
+  googleId?: string;
   lineUserId?: string;
   pictureUrl?: string;
   role: 'member' | 'pro' | 'admin';

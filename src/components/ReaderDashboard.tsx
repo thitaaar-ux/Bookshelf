@@ -99,6 +99,27 @@ export default function ReaderDashboard() {
       const savedUser = localStorage.getItem('tsundoku_user');
       if (savedUser) setCurrentUser(JSON.parse(savedUser));
 
+      // Handle Google OAuth redirect callback params
+      if (typeof window !== 'undefined') {
+        const urlParams = new URLSearchParams(window.location.search);
+        const googleLogin = urlParams.get('google_login');
+        const userParam = urlParams.get('user');
+        const googleError = urlParams.get('google_error');
+
+        if (googleLogin === 'success' && userParam) {
+          const userObj = JSON.parse(decodeURIComponent(userParam));
+          handleLogin(userObj);
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (googleError) {
+          setToastMessage(
+            googleError === 'not_configured'
+              ? 'ระบบ Google OAuth ยังไม่ได้ใส่ GOOGLE_CLIENT_ID ใน .env.local'
+              : `เข้าสู่ระบบ Google ไม่สำเร็จ: ${decodeURIComponent(googleError)}`
+          );
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+
       const savedBooks = localStorage.getItem('tsundoku_books');
       if (savedBooks) {
         const parsed = JSON.parse(savedBooks);
