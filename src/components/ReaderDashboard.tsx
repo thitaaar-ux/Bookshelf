@@ -99,14 +99,16 @@ export default function ReaderDashboard() {
       const savedUser = localStorage.getItem('tsundoku_user');
       if (savedUser) setCurrentUser(JSON.parse(savedUser));
 
-      // Handle Google OAuth redirect callback params
+      // Handle Google & LINE OAuth redirect callback params
       if (typeof window !== 'undefined') {
         const urlParams = new URLSearchParams(window.location.search);
         const googleLogin = urlParams.get('google_login');
+        const lineLogin = urlParams.get('line_login');
         const userParam = urlParams.get('user');
         const googleError = urlParams.get('google_error');
+        const lineError = urlParams.get('line_error');
 
-        if (googleLogin === 'success' && userParam) {
+        if ((googleLogin === 'success' || lineLogin === 'success') && userParam) {
           const userObj = JSON.parse(decodeURIComponent(userParam));
           handleLogin(userObj);
           window.history.replaceState({}, document.title, window.location.pathname);
@@ -115,6 +117,13 @@ export default function ReaderDashboard() {
             googleError === 'not_configured'
               ? 'ระบบ Google OAuth ยังไม่ได้ใส่ GOOGLE_CLIENT_ID ใน .env.local'
               : `เข้าสู่ระบบ Google ไม่สำเร็จ: ${decodeURIComponent(googleError)}`
+          );
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else if (lineError) {
+          setToastMessage(
+            lineError === 'not_configured'
+              ? 'ระบบ LINE Login ยังไม่ได้ใส่ LINE_LOGIN_CHANNEL_ID ใน .env.local'
+              : `เข้าสู่ระบบ LINE ไม่สำเร็จ: ${decodeURIComponent(lineError)}`
           );
           window.history.replaceState({}, document.title, window.location.pathname);
         }

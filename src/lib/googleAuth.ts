@@ -1,15 +1,20 @@
 import { queryPostgres } from './postgres';
 import { UserProfile } from '@/types';
 
+function readEnv(name: string): string {
+  const value = process.env[name] || '';
+  return value.trim().replace(/^["']|["']$/g, '');
+}
+
 export function isGoogleConfigured(): boolean {
-  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const clientId = readEnv('GOOGLE_CLIENT_ID') || readEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID');
+  const clientSecret = readEnv('GOOGLE_CLIENT_SECRET');
   return Boolean(clientId && clientId.trim() !== '' && clientSecret && clientSecret.trim() !== '');
 }
 
 export function getGoogleOAuthUrl(state?: string): string {
-  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+  const clientId = readEnv('GOOGLE_CLIENT_ID') || readEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID');
+  const appUrl = readEnv('NEXT_PUBLIC_APP_URL') || 'http://localhost:3001';
   const redirectUri = `${appUrl}/api/auth/google/callback`;
 
   const params = new URLSearchParams({
@@ -29,9 +34,9 @@ export function getGoogleOAuthUrl(state?: string): string {
 }
 
 export async function exchangeGoogleCode(code: string): Promise<{ access_token: string; id_token?: string }> {
-  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3001';
+  const clientId = readEnv('GOOGLE_CLIENT_ID') || readEnv('NEXT_PUBLIC_GOOGLE_CLIENT_ID');
+  const clientSecret = readEnv('GOOGLE_CLIENT_SECRET');
+  const appUrl = readEnv('NEXT_PUBLIC_APP_URL') || 'http://localhost:3001';
   const redirectUri = `${appUrl}/api/auth/google/callback`;
 
   const response = await fetch('https://oauth2.googleapis.com/token', {

@@ -182,8 +182,6 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
           updated_at TIMESTAMPTZ DEFAULT NOW()
         );
 
-        ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT;
-
         DO $$ BEGIN
           CREATE TYPE book_status_enum AS ENUM ('backlog', 'reading', 'completed', 'dropped');
         EXCEPTION
@@ -296,6 +294,7 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
       `);
 
       const indexStatements = [
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT;',
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;',
         'CREATE INDEX IF NOT EXISTS idx_books_user_status ON books(user_id, status);',
         'CREATE INDEX IF NOT EXISTS idx_reading_logs_user_date ON reading_logs(user_id, created_at);',

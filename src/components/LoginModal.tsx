@@ -83,28 +83,42 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
-  const handleLineLogin = (overrideLineId?: string, overrideName?: string) => {
+  const handleLineLogin = async () => {
     setIsLoading(true);
     setErrorMessage('');
 
-    setTimeout(() => {
-      const lineId = overrideLineId || customLineId || `U${Math.random().toString(36).substring(2, 12)}`;
-      const displayName = overrideName || (name.trim() || 'คุณนักอ่าน LINE (Bunnarak)');
+    try {
+      const res = await fetch('/api/auth/line');
+      const data = await res.json();
 
-      const profile: UserProfile = {
-        id: `user-${Date.now()}`,
-        name: displayName,
-        lineUserId: lineId,
-        role: 'member',
-        streakDays: 7,
-        joinedAt: new Date().toISOString().substring(0, 10),
-        pictureUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-      };
+      if (data.configured && data.url) {
+        // Redirect to live LINE OAuth
+        window.location.href = data.url;
+        return;
+      }
 
-      onLogin(profile);
+      // Fallback fast login
+      const loginRes = await fetch('/api/auth/line', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'คุณนักอ่าน LINE (Bunnarak)',
+          lineId: customLineId || 'U9330ea2a3097a7e8ea7b81a9eeb82088',
+        }),
+      });
+      const loginData = await loginRes.json();
+      if (loginData.success && loginData.user) {
+        onLogin(loginData.user);
+        setIsLoading(false);
+        onClose();
+      } else {
+        setErrorMessage(loginData.error || 'เข้าสู่ระบบด้วย LINE ไม่สำเร็จ');
+        setIsLoading(false);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ LINE');
       setIsLoading(false);
-      onClose();
-    }, 400);
+    }
   };
 
   const handleEmailAuth = (e: React.FormEvent) => {
@@ -332,42 +346,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             {/* Tab 1: LINE Authentication */}
             {activeTab === 'line' && (
               <div className="space-y-4">
-                <div className="p-3 bg-emerald-50 border border-emerald-300 text-neutral-800 text-xs space-y-1.5">
+                <div className="p-3.5 bg-emerald-50 border border-emerald-300 text-neutral-800 text-xs space-y-1.5">
                   <div className="font-bold flex items-center gap-1.5 text-emerald-900">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#06c755]" />
-                    <span>เข้าสู่ระบบด้วย LINE สะดวกและรวดเร็ว</span>
+                    <CheckCircle2 className="w-4 h-4 text-[#06c755] shrink-0" />
+                    <span>เข้าสู่ระบบด้วยบัญชี LINE</span>
                   </div>
                   <p className="text-[11px] text-neutral-600 leading-relaxed">
-                    ซิงค์ข้อมูลกองดองและการแจ้งเตือนการอ่านกับบอท <strong className="text-emerald-800">Bunnarak</strong> ได้ทันที
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono font-bold text-neutral-700 uppercase mb-1">
-                    ชื่อที่ต้องการแสดง (Display Name)
-                  </label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="เช่น คุณนักอ่าน (Bunnarak Reader)"
-                    className="w-full px-3 py-2 bg-white border-2 border-[#121212] text-xs font-mono focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono font-bold text-neutral-700 uppercase mb-1">
-                    LINE User ID (บัญชีผู้ใช้)
-                  </label>
-                  <input
-                    type="text"
-                    value={customLineId}
-                    onChange={(e) => setCustomLineId(e.target.value)}
-                    placeholder="U..."
-                    className="w-full px-3 py-2 bg-white border-2 border-[#121212] text-xs font-mono focus:outline-none"
-                  />
-                  <p className="text-[10px] font-mono text-neutral-500 mt-1">
-                    ค่าเริ่มต้นจะใช้ LINE User ID จากการตั้งค่าระบบ
+                    คลิกเพื่อซิงค์ข้อมูลกองดองและการแจ้งเตือนกับบอท <strong className="text-emerald-800">Bunnarak</strong> สะดวกรวดเร็ว
                   </p>
                 </div>
 
@@ -375,7 +360,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   type="button"
                   onClick={() => handleLineLogin()}
                   disabled={isLoading}
-                  className="w-full py-3 px-4 bg-[#06c755] hover:bg-[#05b34c] text-white font-bold text-xs uppercase flex items-center justify-center gap-2 border-2 border-[#121212] shadow-[4px_4px_0_#121212] active:translate-x-0.5 active:translate-y-0.5 transition cursor-pointer"
+                  className="w-full py-3.5 px-4 bg-[#06c755] hover:bg-[#05b34c] text-white font-bold text-xs uppercase flex items-center justify-center gap-2.5 border-2 border-[#121212] shadow-[4px_4px_0_#121212] active:translate-x-0.5 active:translate-y-0.5 transition cursor-pointer"
                 >
                   <span className="w-3 h-3 rounded-full bg-white inline-block"></span>
                   <span>{isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบด้วย LINE'}</span>
