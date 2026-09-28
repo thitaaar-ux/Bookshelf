@@ -168,6 +168,7 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
           email TEXT UNIQUE,
           display_name TEXT NOT NULL,
           avatar_url TEXT,
+          password_hash TEXT,
           google_id TEXT UNIQUE,
           line_user_id TEXT UNIQUE,
           line_connected BOOLEAN DEFAULT FALSE,
@@ -294,6 +295,7 @@ export async function initPostgresSchema(): Promise<{ success: boolean; message:
       `);
 
       const indexStatements = [
+        'ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;',
         'ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT;',
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;',
         'CREATE INDEX IF NOT EXISTS idx_books_user_status ON books(user_id, status);',

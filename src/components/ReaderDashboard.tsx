@@ -74,6 +74,7 @@ export default function ReaderDashboard() {
     setCurrentUser(null);
     try {
       localStorage.removeItem('tsundoku_user');
+      fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     } catch {}
     setToastMessage('ออกจากระบบเรียบร้อยแล้ว');
   };
@@ -97,7 +98,16 @@ export default function ReaderDashboard() {
     // 1. Initial local load for instant paint
     try {
       const savedUser = localStorage.getItem('tsundoku_user');
-      if (savedUser) setCurrentUser(JSON.parse(savedUser));
+      if (savedUser) {
+        const parsed = JSON.parse(savedUser);
+        // 14-Day Expiration Check
+        if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
+          localStorage.removeItem('tsundoku_user');
+          setToastMessage('เซสชันการเข้าสู่ระบบหมดอายุ (ครบ 14 วัน) กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+        } else {
+          setCurrentUser(parsed);
+        }
+      }
 
       // Handle Google & LINE OAuth redirect callback params
       if (typeof window !== 'undefined') {

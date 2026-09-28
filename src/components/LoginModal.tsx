@@ -121,32 +121,54 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
-  const handleEmailAuth = (e: React.FormEvent) => {
+  const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       setErrorMessage('กรุณากรอกอีเมลและรหัสผ่าน');
       return;
     }
 
+    if (password.trim().length < 6) {
+      setErrorMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+      return;
+    }
+
     setIsLoading(true);
     setErrorMessage('');
 
-    setTimeout(() => {
-      const isAdmin = email.toLowerCase().includes('admin');
-      const profile: UserProfile = {
-        id: `user-${Date.now()}`,
-        name: name.trim() || email.split('@')[0],
-        email: email.trim(),
-        role: isAdmin ? 'admin' : 'member',
-        streakDays: 5,
-        joinedAt: new Date().toISOString().substring(0, 10),
-        pictureUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    try {
+      const res = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password.trim(),
+          name: name.trim(),
+          isRegister: isRegisterMode,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setErrorMessage(data.error || 'เกิดข้อผิดพลาดในการตรวจสอบบัญชี');
+        setIsLoading(false);
+        return;
+      }
+
+      // User session with 14 days expiration
+      const userWithExpiry = {
+        ...data.user,
+        token: data.token,
+        expiresAt: data.expiresAt,
       };
 
-      onLogin(profile);
+      onLogin(userWithExpiry);
       setIsLoading(false);
       onClose();
-    }, 400);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+      setIsLoading(false);
+    }
   };
 
   const handleQuickDemoLogin = (type: 'reader' | 'admin' | 'google') => {
