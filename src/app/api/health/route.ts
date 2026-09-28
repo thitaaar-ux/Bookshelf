@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { lineConfig, stripeConfig } from '@/src/lib/serverState';
+import { hydrateLineConfig, stripeConfig } from '@/src/lib/serverState';
 import { getDbStatus } from '@/src/lib/db';
 
 export async function GET() {
+  const lineConfig = await hydrateLineConfig();
   const dbStatus = await getDbStatus();
 
   const lineConfigured = Boolean(
