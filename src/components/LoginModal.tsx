@@ -218,16 +218,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         initial={{ opacity: 0, scale: 0.95, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 12 }}
-        className="relative w-full max-w-md bg-[#f8f7f4] border-2 border-[#121212] shadow-[8px_8px_0_#121212] overflow-hidden"
+        className="relative w-full max-w-md bg-[#f8f7f4] border-2 border-[#121212] shadow-[6px_6px_0_#121212] sm:shadow-[8px_8px_0_#121212] max-h-[92vh] overflow-y-auto"
       >
         {/* Top Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b-2 border-[#121212] bg-white">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b-2 border-[#121212] bg-white sticky top-0 z-10">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-none bg-[#ff4d00] text-white flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-none bg-[#ff4d00] text-white flex items-center justify-center font-bold shrink-0">
               <LogIn className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-sm font-black uppercase tracking-tight text-[#121212]">
+              <h2 className="text-xs sm:text-sm font-black uppercase tracking-tight text-[#121212]">
                 {currentUser ? 'โปรไฟล์ผู้ใช้งาน' : 'เข้าสู่ระบบ Bunnarak'}
               </h2>
               <p className="text-[10px] font-mono text-neutral-500">

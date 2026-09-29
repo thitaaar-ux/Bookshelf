@@ -66,64 +66,65 @@ export const BookManagement: React.FC<BookManagementProps> = ({
     <div className="space-y-8">
       
       {/* Control Bar: Brutalist Filters, Search & Action Buttons */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 pb-2 border-b-2 border-[#121212]">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 sm:gap-4 pb-2 border-b-2 border-[#121212]">
         
-        {/* Status Filter Tabs */}
-        <div className="flex items-center border-2 border-[#121212] bg-[#f8f7f4] self-start overflow-x-auto max-w-full">
+        {/* Status Filter Tabs - Scrollable on mobile without wrapping */}
+        <div className="flex items-center border-2 border-[#121212] bg-[#f8f7f4] self-start overflow-x-auto max-w-full shadow-[2px_2px_0_#121212]">
           <button
             id="tab-reading"
             onClick={() => setFilter('reading')}
-            className={`px-4 py-2 text-xs font-mono font-bold uppercase transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-3 sm:px-4 py-2 text-xs font-mono font-bold uppercase transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               filter === 'reading'
                 ? 'bg-[#121212] text-[#f8f7f4]'
                 : 'text-[#121212] hover:bg-[#121212]/10'
             }`}
           >
             <span>กำลังอ่าน</span>
-            <span>({books.filter(b => b.status === 'reading').length})</span>
+            <span className="font-number font-bold">({books.filter(b => b.status === 'reading').length})</span>
           </button>
 
           <button
             id="tab-backlog"
             onClick={() => setFilter('backlog')}
-            className={`px-4 py-2 text-xs font-mono font-bold uppercase transition cursor-pointer whitespace-nowrap border-l-2 border-[#121212] flex items-center gap-1.5 ${
+            className={`px-3 sm:px-4 py-2 text-xs font-mono font-bold uppercase transition cursor-pointer whitespace-nowrap border-l-2 border-[#121212] flex items-center gap-1.5 ${
               filter === 'backlog'
                 ? 'bg-[#121212] text-[#f8f7f4]'
                 : 'text-[#121212] hover:bg-[#121212]/10'
             }`}
           >
             <span>กองดอง</span>
-            <span>({books.filter(b => b.status === 'backlog').length})</span>
+            <span className="font-number font-bold">({books.filter(b => b.status === 'backlog').length})</span>
           </button>
 
           <button
             id="tab-completed"
             onClick={() => setFilter('completed')}
-            className={`px-4 py-2 text-xs font-mono font-bold uppercase transition cursor-pointer whitespace-nowrap border-l-2 border-[#121212] flex items-center gap-1.5 ${
+            className={`px-3 sm:px-4 py-2 text-xs font-mono font-bold uppercase transition cursor-pointer whitespace-nowrap border-l-2 border-[#121212] flex items-center gap-1.5 ${
               filter === 'completed'
                 ? 'bg-[#121212] text-[#f8f7f4]'
                 : 'text-[#121212] hover:bg-[#121212]/10'
             }`}
           >
             <span>อ่านจบแล้ว</span>
-            <span>({books.filter(b => b.status === 'completed').length})</span>
+            <span className="font-number font-bold">({books.filter(b => b.status === 'completed').length})</span>
           </button>
 
           <button
             id="tab-all"
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 text-xs font-mono font-bold uppercase transition cursor-pointer whitespace-nowrap border-l-2 border-[#121212] ${
+            className={`px-3 sm:px-4 py-2 text-xs font-mono font-bold uppercase transition cursor-pointer whitespace-nowrap border-l-2 border-[#121212] flex items-center gap-1.5 ${
               filter === 'all'
                 ? 'bg-[#121212] text-[#f8f7f4]'
                 : 'text-[#121212] hover:bg-[#121212]/10'
             }`}
           >
-            <span>ทั้งหมด ({books.length})</span>
+            <span>ทั้งหมด</span>
+            <span className="font-number font-bold">({books.length})</span>
           </button>
         </div>
 
         {/* Search & Add Action */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="relative flex-1 sm:w-64">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#121212]/50" />
             <input
@@ -132,7 +133,7 @@ export const BookManagement: React.FC<BookManagementProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="ค้นหาชื่อหนังสือ, ผู้แต่ง..."
-              className="w-full pl-9 pr-3 py-2 bg-white border-2 border-[#121212] text-xs text-[#121212] font-mono focus:outline-none"
+              className="w-full pl-9 pr-3 py-2 bg-white border-2 border-[#121212] text-xs text-[#121212] font-mono focus:outline-none shadow-[2px_2px_0_#121212]"
             />
           </div>
 
@@ -146,7 +147,7 @@ export const BookManagement: React.FC<BookManagementProps> = ({
                 setIsAddModalOpen(true);
               }
             }}
-            className="btn btn-primary py-2 px-4 text-xs whitespace-nowrap flex items-center gap-1.5"
+            className="btn btn-primary py-2 px-3 sm:px-4 text-xs whitespace-nowrap flex items-center gap-1.5 shadow-[2px_2px_0_#121212]"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>เพิ่มหนังสือ</span>
@@ -157,7 +158,7 @@ export const BookManagement: React.FC<BookManagementProps> = ({
 
       {/* Book Grid - Brutalist Editorial Gallery */}
       {filteredBooks.length === 0 ? (
-        <div className="p-16 text-center border-2 border-dashed border-[#121212]/30 bg-white shadow-[4px_4px_0_#121212]">
+        <div className="p-10 sm:p-16 text-center border-2 border-dashed border-[#121212]/30 bg-white shadow-[4px_4px_0_#121212]">
           <Bookmark className="w-8 h-8 text-[#121212]/40 mx-auto mb-3" />
           <h3 className="font-display text-xl font-bold text-[#121212]">ไม่พบหนังสือที่ค้นหา</h3>
           <p className="text-xs font-mono text-[#121212]/60 mt-1 mb-4">
@@ -180,7 +181,7 @@ export const BookManagement: React.FC<BookManagementProps> = ({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {filteredBooks.map((book) => {
             const progress = book.totalPages > 0 
               ? Math.min(100, Math.round((book.currentPage / book.totalPages) * 100))
@@ -193,22 +194,18 @@ export const BookManagement: React.FC<BookManagementProps> = ({
               <div
                 key={book.id}
                 id={`book-card-${book.id}`}
-                className={`bg-white border-2 border-[#121212] p-5 flex flex-col justify-between relative transition-all ${
-                  isActive
-                    ? 'shadow-[10px_10px_0_#ff4d00]'
-                    : 'shadow-[6px_6px_0_#121212] hover:shadow-[10px_10px_0_#121212]'
-                }`}
+                className="bg-white border-2 border-[#121212] p-4 sm:p-5 flex flex-col justify-between relative transition-all shadow-[4px_4px_0_#121212] sm:shadow-[6px_6px_0_#121212] hover:shadow-[8px_8px_0_#121212]"
               >
                 {/* Active Indicator Badge */}
                 {isActive && (
-                  <div className="absolute top-4 right-4 z-10 px-2.5 py-1 bg-[#ff4d00] text-white font-mono text-[9px] font-bold tracking-wider uppercase border border-[#121212]">
+                  <div className="absolute top-4 right-4 z-10 px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#ff4d00] text-white font-mono text-[9px] font-bold tracking-wider uppercase border border-[#121212]">
                     เล่มเป้าหมายหลัก
                   </div>
                 )}
 
                 <div>
                   {/* Book Cover */}
-                  <div className="relative w-full aspect-[16/10] bg-[#e5e5e5] border-2 border-[#121212] mb-4 overflow-hidden">
+                  <div className="relative w-full aspect-[16/10] bg-[#e5e5e5] border-2 border-[#121212] mb-3 sm:mb-4 overflow-hidden">
                     {book.coverUrl ? (
                       <img 
                         src={book.coverUrl} 
@@ -229,7 +226,7 @@ export const BookManagement: React.FC<BookManagementProps> = ({
                   </div>
 
                   {/* Title & Author / Category */}
-                  <h4 className="font-display text-xl font-bold text-[#121212] leading-tight line-clamp-2">
+                  <h4 className="font-display text-lg sm:text-xl font-bold text-[#121212] leading-tight line-clamp-2">
                     {book.title}
                   </h4>
                   <div className="flex items-center gap-2 font-mono text-xs text-[#121212]/70 mt-1 flex-wrap">
@@ -238,11 +235,13 @@ export const BookManagement: React.FC<BookManagementProps> = ({
                     <span>โดย {book.author}</span>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="progress-container my-3">
-                    <div className="label flex justify-between items-center mb-1">
-                      <span>{book.currentPage} / {book.totalPages} หน้า</span>
-                      <span className="text-[#8B0000] font-bold">{progress}%</span>
+                  {/* Progress Bar with Readable Numbers */}
+                  <div className="progress-container my-3 p-2.5 bg-[#f8f7f4] border border-[#121212]/20">
+                    <div className="label flex justify-between items-baseline mb-1">
+                      <span className="font-mono text-xs text-neutral-700">
+                        <strong className="font-number font-bold text-sm text-[#121212]">{book.currentPage}</strong> / {book.totalPages} หน้า
+                      </span>
+                      <span className="font-number font-extrabold text-sm text-[#8B0000] tabular-nums">{progress}%</span>
                     </div>
                     <div className="progress-bar">
                       <div 
@@ -252,14 +251,14 @@ export const BookManagement: React.FC<BookManagementProps> = ({
                     </div>
                   </div>
 
-                  <div className="text-[11px] font-mono text-[#121212]/60 flex justify-between py-1">
-                    <span>เป้าหมาย: {book.targetPagesPerDay || 20} หน้า/วัน</span>
-                    <span>เหลือ {pagesRemaining} หน้า</span>
+                  <div className="text-[11px] font-mono text-[#121212]/70 flex justify-between py-1">
+                    <span>เป้าหมาย: <strong className="font-number font-bold text-[#121212]">{book.targetPagesPerDay || 20}</strong> หน้า/วัน</span>
+                    <span>เหลือ <strong className="font-number font-bold text-[#121212]">{pagesRemaining}</strong> หน้า</span>
                   </div>
                 </div>
 
                 {/* Card Actions */}
-                <div className="pt-4 mt-3 border-t-2 border-[#121212]/10 space-y-3">
+                <div className="pt-3 mt-3 border-t-2 border-[#121212]/10 space-y-2.5">
                   {/* Quick increment buttons */}
                   {!isCompleted && (
                     <div className="flex items-center gap-1.5">
@@ -267,7 +266,7 @@ export const BookManagement: React.FC<BookManagementProps> = ({
                         <button
                           key={inc}
                           onClick={() => handlePageQuickAdd(book, inc)}
-                          className="flex-1 py-1 bg-[#f8f7f4] border border-[#121212] text-[10px] font-mono font-bold hover:bg-[#121212] hover:text-[#f8f7f4] transition cursor-pointer"
+                          className="flex-1 py-1.5 bg-white border border-[#121212] text-xs font-number font-bold hover:bg-[#121212] hover:text-[#f8f7f4] transition cursor-pointer shadow-[2px_2px_0_#121212] active:translate-x-0.5 active:translate-y-0.5"
                         >
                           +{inc} หน้า
                         </button>
@@ -277,7 +276,10 @@ export const BookManagement: React.FC<BookManagementProps> = ({
 
                   <div className="flex items-center justify-between gap-2 pt-1">
                     {isActive ? (
-                      <span className="text-xs font-mono font-bold text-[#ff4d00]">กำลังอ่านเล่มนี้</span>
+                      <span className="text-xs font-mono font-bold text-[#ff4d00] flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-[#ff4d00]" />
+                        <span>กำลังอ่านเล่มนี้</span>
+                      </span>
                     ) : (
                       <button
                         onClick={() => onSetActiveBook(book.id)}
@@ -290,18 +292,6 @@ export const BookManagement: React.FC<BookManagementProps> = ({
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => {
-                          const nextStatus: BookStatus = 
-                            book.status === 'reading' ? 'completed' :
-                            book.status === 'backlog' ? 'reading' : 'backlog';
-                          onUpdateBook({ ...book, status: nextStatus });
-                        }}
-                        className="text-[10px] font-mono px-2 py-1 border border-[#121212] hover:bg-[#121212]/10 transition"
-                      >
-                        {book.status === 'reading' ? 'กำลังอ่าน' : book.status === 'completed' ? 'อ่านจบแล้ว' : 'กองดอง'}
-                      </button>
-
-                      <button
-                        onClick={() => {
                           if (onEditBook) {
                             onEditBook(book);
                           } else {
@@ -309,23 +299,22 @@ export const BookManagement: React.FC<BookManagementProps> = ({
                             setIsAddModalOpen(true);
                           }
                         }}
-                        className="p-1 border border-[#121212] text-[#121212]/70 hover:text-white hover:bg-[#121212] transition"
+                        className="p-1 border border-[#121212] bg-white text-[#121212]/70 hover:text-white hover:bg-[#121212] transition shadow-[1px_1px_0_#121212] cursor-pointer"
                         title="แก้ไขข้อมูล / เปลี่ยนรูปภาพหนังสือ"
                       >
-                        <Edit3 className="w-3 h-3" />
+                        <Edit3 className="w-3.5 h-3.5" />
                       </button>
 
                       <button
                         onClick={() => onDeleteBook(book.id)}
-                        className="p-1 border border-[#121212] text-[#121212]/40 hover:text-white hover:bg-red-600 transition"
+                        className="p-1 border border-[#121212] bg-white text-[#121212]/40 hover:text-white hover:bg-red-600 transition shadow-[1px_1px_0_#121212]"
                         title="ลบหนังสือ"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
                 </div>
-
               </div>
             );
           })}

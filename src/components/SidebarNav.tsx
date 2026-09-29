@@ -1,13 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   LayoutDashboard, 
   BookOpen, 
   TrendingUp, 
   Settings,
-  Menu,
-  X,
   LogIn,
   User,
   ShieldCheck,
@@ -29,12 +27,11 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
   activeTab,
   setActiveTab,
   onOpenScheduler,
+  onOpenAddBook,
   currentUser,
   onOpenLogin,
   onLogout,
 }) => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <>
       {/* Desktop Fixed Aside Navigation - Variation 2 */}
@@ -163,142 +160,43 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
         </div>
       </aside>
 
-      {/* Mobile Top Navigation Header */}
-      <header className="md:hidden sticky top-0 z-40 bg-[#f8f7f4] border-b-2 border-[#121212] px-4 py-3 flex items-center justify-between">
-        <div 
+      {/* Mobile Fixed Bottom Navigation Bar - Ergonomic Touch Control */}
+      <nav 
+        id="mobile-bottom-nav" 
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#f8f7f4] border-t-2 border-[#121212] px-2 py-1.5 flex items-center justify-around shadow-[0_-4px_12px_rgba(0,0,0,0.06)]"
+      >
+        <button
           onClick={() => setActiveTab('dashboard')}
-          className="brand text-sm cursor-pointer tracking-tight"
+          className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-none transition ${
+            activeTab === 'dashboard'
+              ? 'bg-[#121212] text-[#f8f7f4] font-bold'
+              : 'text-[#121212] hover:bg-[#121212]/5'
+          }`}
         >
-          I&apos;M YOUR BUNNARAK
-        </div>
+          <LayoutDashboard className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px] font-mono leading-none tracking-tight">ภาพรวม</span>
+        </button>
 
-        <div className="flex items-center gap-2">
-          {currentUser ? (
-            <button
-              onClick={onOpenLogin}
-              className="flex items-center gap-1.5 px-2 py-1 bg-white border border-[#121212] text-xs font-mono font-bold cursor-pointer"
-              title="ดูโปรไฟล์"
-            >
-              {currentUser.pictureUrl ? (
-                <img
-                  src={currentUser.pictureUrl}
-                  alt={currentUser.name}
-                  className="w-4 h-4 object-cover"
-                />
-              ) : (
-                <User className="w-3 h-3" />
-              )}
-              <span className="max-w-[70px] truncate">{currentUser.name}</span>
-            </button>
-          ) : (
-            <button
-              id="mobile-btn-login"
-              type="button"
-              onClick={onOpenLogin}
-              className="py-1 px-2.5 bg-[#121212] text-white text-[11px] font-bold font-mono border border-[#121212] flex items-center gap-1 cursor-pointer"
-            >
-              <LogIn className="w-3 h-3 text-[#ff4d00]" />
-              <span>เข้าสู่ระบบ</span>
-            </button>
-          )}
+        <button
+          onClick={() => setActiveTab('library')}
+          className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-none transition ${
+            activeTab === 'library'
+              ? 'bg-[#121212] text-[#f8f7f4] font-bold'
+              : 'text-[#121212] hover:bg-[#121212]/5'
+          }`}
+        >
+          <BookOpen className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px] font-mono leading-none tracking-tight">คลังหนังสือ</span>
+        </button>
 
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 border border-[#121212] bg-[#f8f7f4] cursor-pointer"
-            aria-label="เปิดเมนูการนำทาง"
-          >
-            {mobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Drawer Menu */}
-      {mobileMenuOpen && (
-        <div className="md:hidden fixed inset-x-0 top-[53px] z-40 bg-[#f8f7f4] border-b-2 border-[#121212] p-5 shadow-xl space-y-2">
-          <button
-            onClick={() => {
-              setActiveTab('dashboard');
-              setMobileMenuOpen(false);
-            }}
-            className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-          >
-            <LayoutDashboard className="w-4 h-4" />
-            <span>ภาพรวม</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('library');
-              setMobileMenuOpen(false);
-            }}
-            className={`nav-item ${activeTab === 'library' ? 'active' : ''}`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>คลังหนังสือ</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('charts');
-              setMobileMenuOpen(false);
-            }}
-            className={`nav-item ${activeTab === 'charts' ? 'active' : ''}`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span>ความเร็วการอ่าน</span>
-          </button>
-
-          <button
-            onClick={() => {
-              onOpenScheduler();
-              setMobileMenuOpen(false);
-            }}
-            className="nav-item"
-          >
-            <Settings className="w-4 h-4" />
-            <span>ตั้งเวลาเตือน</span>
-          </button>
-
-          <div className="pt-3 mt-2 border-t-2 border-[#121212]">
-            {currentUser ? (
-              <div className="space-y-2">
-                <button
-                  onClick={() => {
-                    onOpenLogin();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="w-full p-2.5 bg-white border-2 border-[#121212] flex items-center justify-between text-left text-xs font-mono font-bold"
-                >
-                  <span>บัญชี: {currentUser.name}</span>
-                  <span className="text-[10px] text-neutral-500">ดูโปรไฟล์</span>
-                </button>
-                {onLogout && (
-                  <button
-                    onClick={() => {
-                      onLogout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="w-full py-2 bg-rose-50 text-rose-700 border border-rose-300 text-xs font-mono font-bold"
-                  >
-                    ออกจากระบบ
-                  </button>
-                )}
-              </div>
-            ) : (
-              <button
-                onClick={() => {
-                  onOpenLogin();
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full py-2.5 px-3 bg-[#121212] text-white border-2 border-[#121212] flex items-center justify-center gap-2 text-xs font-bold font-mono shadow-[3px_3px_0_#ff4d00]"
-              >
-                <LogIn className="w-3.5 h-3.5 text-[#ff4d00]" />
-                <span>เข้าสู่ระบบ</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+        <button
+          onClick={onOpenScheduler}
+          className="flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-none text-[#121212] hover:bg-[#121212]/5 transition"
+        >
+          <Settings className="w-4 h-4 mb-0.5" />
+          <span className="text-[10px] font-mono leading-none tracking-tight">ตั้งเตือน</span>
+        </button>
+      </nav>
     </>
   );
 };

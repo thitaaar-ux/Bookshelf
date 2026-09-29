@@ -9,7 +9,8 @@ import {
   BookOpen,
   Calendar,
   Layers,
-  Sparkles
+  Sparkles,
+  ChevronsUpDown
 } from 'lucide-react';
 import { Book, ReadingLog, UserSchedule } from '../types';
 
@@ -137,10 +138,6 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
     return Math.round((totalPagesInPeriod / 30) * 10) / 10;
   }, [totalPagesInPeriod]);
 
-  const daysGoalMet = useMemo(() => {
-    return chartData.filter(d => d.isGoalMet).length;
-  }, [chartData]);
-
   const maxDailyPages = useMemo(() => {
     return Math.max(...chartData.map(d => d.pages), 1);
   }, [chartData]);
@@ -200,13 +197,11 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
     return `${splinePath} L ${last.cx},${bottomY} L ${first.cx},${bottomY} Z`;
   }, [splinePath, points, chartPlotHeight]);
 
-  const activeDay = hoveredIndex !== null ? points[hoveredIndex] : points[points.length - 1];
-
   return (
     <div id="reading-velocity-section" className="space-y-6">
       
       {/* Header and Controls Row */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b-2 border-[#121212]">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-3 sm:gap-4 pb-1">
         <div>
           <span className="label">สถิติการอ่านย้อนหลัง 30 วัน</span>
           <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-[#121212] tracking-tight">
@@ -214,14 +209,15 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
           </h3>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Book Filter */}
-          <div className="flex items-center gap-2 border-2 border-[#121212] bg-[#f8f7f4] px-3 py-1.5 text-xs">
-            <BookOpen className="w-3.5 h-3.5" />
+        {/* Controls: Full Width on Mobile / Balanced on Desktop */}
+        <div className="w-full lg:w-[440px] flex flex-col gap-2">
+          {/* 1. ปุ่ม ทุกเล่มในคลัง */}
+          <div className="relative w-full flex items-center border-2 border-[#121212] bg-[#f8f7f4] px-3 py-2 text-xs shadow-[2px_2px_0_#121212]">
+            <BookOpen className="w-4 h-4 shrink-0 text-[#121212] mr-2" />
             <select
               value={selectedBookFilter}
               onChange={(e) => setSelectedBookFilter(e.target.value)}
-              className="bg-transparent text-xs text-[#121212] focus:outline-none cursor-pointer font-mono uppercase"
+              className="w-full bg-transparent text-xs text-[#121212] focus:outline-none cursor-pointer font-mono font-bold uppercase appearance-none pr-6 truncate"
             >
               <option value="all">ทุกเล่มในคลัง</option>
               {books.map(b => (
@@ -230,39 +226,35 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
                 </option>
               ))}
             </select>
+            <ChevronsUpDown className="w-3.5 h-3.5 text-[#121212] pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 shrink-0" />
           </div>
 
-          {/* Mode Switcher */}
-          <div className="flex border-2 border-[#121212] bg-[#f8f7f4] text-xs">
+          {/* 2. 2 ปุ่มล่าง: ประวัติการอ่านย้อนหลัง และ รายวัน / ยอดสะสม */}
+          <div className="w-full flex items-center gap-2">
+            {/* ปุ่ม ประวัติการอ่านย้อนหลัง */}
             <button
-              onClick={() => setMode('chart')}
-              className={`px-3 py-1.5 font-mono uppercase font-bold cursor-pointer transition ${
-                mode === 'chart' 
-                  ? 'bg-[#121212] text-[#f8f7f4]' 
-                  : 'text-[#121212] hover:bg-[#121212]/10'
-              }`}
-            >
-              กราฟ
-            </button>
-            <button
-              onClick={() => setMode('table')}
-              className={`px-3 py-1.5 font-mono uppercase font-bold cursor-pointer transition border-l-2 border-[#121212] ${
+              type="button"
+              onClick={() => setMode(mode === 'table' ? 'chart' : 'table')}
+              className={`flex-1 py-1.5 px-2 text-center font-mono uppercase font-bold text-[11px] sm:text-xs cursor-pointer transition border-2 border-[#121212] shadow-[2px_2px_0_#121212] flex items-center justify-center gap-1.5 whitespace-nowrap active:translate-x-0.5 active:translate-y-0.5 ${
                 mode === 'table' 
                   ? 'bg-[#121212] text-[#f8f7f4]' 
-                  : 'text-[#121212] hover:bg-[#121212]/10'
+                  : 'bg-[#f8f7f4] text-[#121212] hover:bg-[#121212]/10'
               }`}
             >
-              ตารางประวัติ
+              <TableIcon className="w-3.5 h-3.5 shrink-0" />
+              <span>ประวัติการอ่านย้อนหลัง</span>
             </button>
-          </div>
 
-          {/* Daily vs Cumulative */}
-          {mode === 'chart' && (
-            <div className="flex border-2 border-[#121212] bg-[#f8f7f4] text-xs">
+            {/* ปุ่มกลุ่ม รายวัน / ยอดสะสม */}
+            <div className="flex flex-1 border-2 border-[#121212] bg-[#f8f7f4] text-xs shadow-[2px_2px_0_#121212]">
               <button
-                onClick={() => setChartViewType('daily')}
-                className={`px-3 py-1.5 font-mono uppercase font-bold cursor-pointer transition ${
-                  viewType === 'daily' 
+                type="button"
+                onClick={() => {
+                  setMode('chart');
+                  setChartViewType('daily');
+                }}
+                className={`flex-1 py-1.5 px-1 sm:px-2 text-center font-mono uppercase font-bold cursor-pointer transition ${
+                  mode === 'chart' && viewType === 'daily' 
                     ? 'bg-[#121212] text-[#f8f7f4]' 
                     : 'text-[#121212] hover:bg-[#121212]/10'
                 }`}
@@ -270,9 +262,13 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
                 รายวัน
               </button>
               <button
-                onClick={() => setChartViewType('cumulative')}
-                className={`px-3 py-1.5 font-mono uppercase font-bold cursor-pointer transition border-l-2 border-[#121212] ${
-                  viewType === 'cumulative' 
+                type="button"
+                onClick={() => {
+                  setMode('chart');
+                  setChartViewType('cumulative');
+                }}
+                className={`flex-1 py-1.5 px-1 sm:px-2 text-center font-mono uppercase font-bold cursor-pointer transition border-l-2 border-[#121212] ${
+                  mode === 'chart' && viewType === 'cumulative' 
                     ? 'bg-[#121212] text-[#f8f7f4]' 
                     : 'text-[#121212] hover:bg-[#121212]/10'
                 }`}
@@ -280,20 +276,19 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
                 ยอดสะสม
               </button>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
       {mode === 'chart' ? (
         <div>
-          {/* Main Visual SVG Container - Variation 2 Brutalist Paper Card */}
+          {/* Main Visual SVG Container - Snug fit brutalist card */}
           <div 
-            className="w-full border-2 border-[#121212] bg-[#ffffff] p-6 relative overflow-hidden select-none shadow-[8px_8px_0_#121212]"
-            style={{ minHeight: '230px' }}
+            className="w-full border-2 border-[#121212] bg-[#ffffff] p-2.5 sm:p-4 relative select-none shadow-[4px_4px_0_#121212] sm:shadow-[6px_6px_0_#121212]"
           >
             <svg 
               viewBox={`0 0 ${svgWidth} ${svgHeight}`} 
-              className="w-full h-auto block overflow-visible"
+              className="w-full h-auto block"
             >
               <defs>
                 <linearGradient id="brutalist-chart-gradient" x1="0" y1="0" x2="0" y2="1">
@@ -424,23 +419,6 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
                 );
               })}
             </svg>
-
-            {/* Hover details pill */}
-            {activeDay && (
-              <div className="mt-4 pt-4 border-t-2 border-[#121212] flex flex-wrap items-center justify-between gap-4 text-xs font-mono">
-                <div className="flex items-center gap-2">
-                  <span className="badge">{activeDay.dateKey}</span>
-                  <span className="font-bold">{activeDay.dayOfWeek}</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span>หน้าที่อ่าน: <strong className="text-[#ff4d00]">{activeDay.pages} หน้า</strong></span>
-                  <span>สะสมรวม: <strong>{activeDay.cumulativePages} หน้า</strong></span>
-                  <span className={activeDay.isGoalMet ? 'text-green-700 font-bold' : 'text-[#121212]/50'}>
-                    {activeDay.isGoalMet ? '✓ บรรลุเป้าหมาย' : 'ต่ำกว่าเป้าหมาย'}
-                  </span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       ) : (
@@ -476,8 +454,8 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
                   <tr key={log.id}>
                     <td className="font-mono text-xs">{log.timestamp}</td>
                     <td className="font-semibold">{log.bookTitle}</td>
-                    <td className="font-mono text-xs font-bold text-[#ff4d00]">+{log.pagesRead} หน้า</td>
-                    <td className="font-mono text-xs opacity-70">น. {log.fromPage} → น. {log.toPage}</td>
+                    <td className="font-number text-xs font-bold text-[#ff4d00] tabular-nums">+{log.pagesRead} หน้า</td>
+                    <td className="font-number text-xs text-neutral-600 tabular-nums">น. {log.fromPage} → น. {log.toPage}</td>
                     <td><span className="badge">{log.source}</span></td>
                   </tr>
                 ))}
@@ -486,19 +464,19 @@ export const ReadingProgressChart: React.FC<ReadingProgressChartProps> = ({
         </div>
       )}
 
-      {/* Summary 3-cell Brutalist Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="border-2 border-[#121212] bg-[#f8f7f4] p-4 shadow-[4px_4px_0_#121212]">
-          <span className="label">ยอดอ่านรวม 30 วัน</span>
-          <div className="font-display text-2xl font-extrabold text-[#121212]">{totalPagesInPeriod} <span className="text-xs font-mono font-normal">หน้า</span></div>
+      {/* Summary 2-cell Brutalist Strip - Single Row */}
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-4">
+        <div className="border-2 border-[#121212] bg-white p-3 sm:p-4 shadow-[2px_2px_0_#121212] sm:shadow-[3px_3px_0_#121212]">
+          <span className="label text-[10px] sm:text-[11px] mb-1 block truncate">ยอดอ่านรวม 30 วัน</span>
+          <div className="font-number text-xl sm:text-2xl md:text-3xl font-extrabold text-[#121212] tabular-nums leading-tight">
+            {totalPagesInPeriod} <span className="text-xs font-sans font-medium text-neutral-500">หน้า</span>
+          </div>
         </div>
-        <div className="border-2 border-[#121212] bg-[#f8f7f4] p-4 shadow-[4px_4px_0_#121212]">
-          <span className="label">ค่าเฉลี่ยรายวัน</span>
-          <div className="font-display text-2xl font-extrabold text-[#121212]">{averageDailyPages} <span className="text-xs font-mono font-normal">หน้า/วัน</span></div>
-        </div>
-        <div className="border-2 border-[#121212] bg-[#f8f7f4] p-4 shadow-[4px_4px_0_#121212]">
-          <span className="label">วันที่บรรลุเป้าหมาย</span>
-          <div className="font-display text-2xl font-extrabold text-[#121212]">{daysGoalMet} <span className="text-xs font-mono font-normal">/ 30 วัน</span></div>
+        <div className="border-2 border-[#121212] bg-white p-3 sm:p-4 shadow-[2px_2px_0_#121212] sm:shadow-[3px_3px_0_#121212]">
+          <span className="label text-[10px] sm:text-[11px] mb-1 block truncate">ค่าเฉลี่ยรายวัน</span>
+          <div className="font-number text-xl sm:text-2xl md:text-3xl font-extrabold text-[#121212] tabular-nums leading-tight">
+            {averageDailyPages} <span className="text-xs font-sans font-medium text-neutral-500">หน้า/วัน</span>
+          </div>
         </div>
       </div>
 

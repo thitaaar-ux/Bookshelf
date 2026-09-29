@@ -32,7 +32,8 @@ import {
   LogIn,
   User,
   ShieldCheck,
-  LogOut
+  LogOut,
+  CheckCircle2
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'motion/react';
@@ -42,7 +43,7 @@ export default function ReaderDashboard() {
   const [books, setBooks] = useState<Book[]>(INITIAL_BOOKS);
   const [logs, setLogs] = useState<ReadingLog[]>(INITIAL_READING_LOGS);
   const [schedule, setSchedule] = useState<UserSchedule>(INITIAL_SCHEDULE);
-  const [activeBookId, setActiveBookId] = useState<string>('');
+  const [activeBookId, setActiveBookId] = useState<string>('book-1');
 
   // Navigation state
   const [activeTab, setActiveTab] = useState<'dashboard' | 'library' | 'charts'>('dashboard');
@@ -74,14 +75,13 @@ export default function ReaderDashboard() {
     setCurrentUser(null);
     try {
       localStorage.removeItem('tsundoku_user');
-      fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     } catch {}
     setToastMessage('ออกจากระบบเรียบร้อยแล้ว');
   };
 
   // Manual Quick Log Form
   const [pagesToLog, setPagesToLog] = useState(15);
-  const [selectedBookForLog, setSelectedBookForLog] = useState('');
+  const [selectedBookForLog, setSelectedBookForLog] = useState('book-1');
   const [serverDbStatus, setServerDbStatus] = useState<{
     connected: boolean;
     storageEngine: string;
@@ -89,8 +89,8 @@ export default function ReaderDashboard() {
     lastUpdated?: string;
   }>({
     connected: true,
-    storageEngine: 'PostgreSQL (Cloud Database)',
-    totalBooks: 0,
+    storageEngine: 'Server File Database (JSON)',
+    totalBooks: INITIAL_BOOKS.length,
   });
 
   // Load state from Server Database API on mount with localStorage fallback
@@ -98,73 +98,19 @@ export default function ReaderDashboard() {
     // 1. Initial local load for instant paint
     try {
       const savedUser = localStorage.getItem('tsundoku_user');
-      if (savedUser) {
-        const parsed = JSON.parse(savedUser);
-        // 14-Day Expiration Check
-        if (parsed.expiresAt && Date.now() > parsed.expiresAt) {
-          localStorage.removeItem('tsundoku_user');
-          setToastMessage('เซสชันการเข้าสู่ระบบหมดอายุ (ครบ 14 วัน) กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-        } else {
-          setCurrentUser(parsed);
-        }
-      }
-
-      // Handle Google & LINE OAuth redirect callback params
-      if (typeof window !== 'undefined') {
-        const urlParams = new URLSearchParams(window.location.search);
-        const googleLogin = urlParams.get('google_login');
-        const lineLogin = urlParams.get('line_login');
-        const userParam = urlParams.get('user');
-        const googleError = urlParams.get('google_error');
-        const lineError = urlParams.get('line_error');
-
-        if ((googleLogin === 'success' || lineLogin === 'success') && userParam) {
-          const userObj = JSON.parse(decodeURIComponent(userParam));
-          handleLogin(userObj);
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else if (googleError) {
-          setToastMessage(
-            googleError === 'not_configured'
-              ? 'ระบบ Google OAuth ยังไม่ได้ใส่ GOOGLE_CLIENT_ID ใน .env.local'
-              : `เข้าสู่ระบบ Google ไม่สำเร็จ: ${decodeURIComponent(googleError)}`
-          );
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else if (lineError) {
-          setToastMessage(
-            lineError === 'not_configured'
-              ? 'ระบบ LINE Login ยังไม่ได้ใส่ LINE_LOGIN_CHANNEL_ID ใน .env.local'
-              : `เข้าสู่ระบบ LINE ไม่สำเร็จ: ${decodeURIComponent(lineError)}`
-          );
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }
+      if (savedUser) setCurrentUser(JSON.parse(savedUser));
 
       const savedBooks = localStorage.getItem('tsundoku_books');
-      if (savedBooks) {
-        const parsed = JSON.parse(savedBooks);
-        if (Array.isArray(parsed) && parsed.some((b: any) => b.id === 'book-1' || b.id === 'book-2')) {
-          localStorage.removeItem('tsundoku_books');
-          localStorage.removeItem('tsundoku_logs');
-        } else {
-          setBooks(parsed);
-        }
-      }
+      if (savedBooks) setBooks(JSON.parse(savedBooks));
 
       const savedLogs = localStorage.getItem('tsundoku_logs');
-      if (savedLogs) {
-        const parsedLogs = JSON.parse(savedLogs);
-        if (Array.isArray(parsedLogs) && parsedLogs.some((l: any) => l.id === 'log-30' || l.id === 'log-1')) {
-          localStorage.removeItem('tsundoku_logs');
-        } else {
-          setLogs(parsedLogs);
-        }
-      }
+      if (savedLogs) setLogs(JSON.parse(savedLogs));
 
       const savedSchedule = localStorage.getItem('tsundoku_schedule');
       if (savedSchedule) setSchedule(JSON.parse(savedSchedule));
 
       const savedActiveBookId = localStorage.getItem('tsundoku_active_book_id');
-      if (savedActiveBookId && savedActiveBookId !== 'book-1') setActiveBookId(savedActiveBookId);
+      if (savedActiveBookId) setActiveBookId(savedActiveBookId);
     } catch {
       // Local fallback
     }
@@ -393,32 +339,30 @@ export default function ReaderDashboard() {
       />
 
       {/* 2. Main Content Area with blueprint-grid background */}
-      <main className="md:col-start-2 h-screen overflow-y-auto p-6 sm:p-10 lg:p-16 blueprint-grid">
+      <main className="md:col-start-2 min-h-screen md:h-screen md:overflow-y-auto p-3.5 sm:p-8 lg:p-14 pb-28 md:pb-14 blueprint-grid">
 
         {/* Tab 1: Primary Overview / Variation 2 Dashboard */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-12">
+          <div className="space-y-6 sm:space-y-10">
             
-            {/* Variation 2 Hero Section */}
-            <section id="hero-section" className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            {/* Hero Section - Mobile optimized header */}
+            <section id="hero-section" className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4 pb-1">
               <div>
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="label m-0 text-xs text-[#ff4d00] font-bold">ระบบติดตามการอ่านกองดอง</span>
-                  <span className="text-neutral-400 hidden sm:inline">•</span>
                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono font-bold bg-white border border-[#121212] shadow-[2px_2px_0_#121212]">
                     <Database className="w-3 h-3 text-emerald-600" />
                     <span>Server Database: {serverDbStatus.connected ? `ออนไลน์ (${books.length} เล่ม)` : 'กำลังเชื่อมต่อ...'}</span>
                   </span>
                 </div>
-                <h1 className="font-display text-[clamp(2.75rem,6vw,5.5rem)] font-extrabold tracking-tight leading-[0.88] mt-1">
+                <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[0.92] mt-1">
                   I&apos;m your <span style={{ color: 'var(--accent)' }}>Bunnarak</span>
                 </h1>
               </div>
-              <div className="shrink-0 flex items-center gap-3">
+              <div className="shrink-0 flex items-center gap-2 sm:gap-3">
                 {currentUser ? (
                   <button
                     onClick={() => setIsLoginModalOpen(true)}
-                    className="btn py-2.5 px-3.5 text-xs flex items-center gap-2 shadow-[4px_4px_0_#121212] font-mono cursor-pointer bg-white border-2 border-[#121212] hover:bg-neutral-50 active:translate-x-0.5 active:translate-y-0.5 transition"
+                    className="btn py-2 px-3 text-xs flex items-center gap-2 shadow-[3px_3px_0_#121212] font-mono cursor-pointer bg-white border-2 border-[#121212] hover:bg-neutral-50 active:translate-x-0.5 active:translate-y-0.5 transition"
                     title="คลิกเพื่อจัดการโปรไฟล์"
                   >
                     {currentUser.pictureUrl ? (
@@ -433,7 +377,7 @@ export default function ReaderDashboard() {
                     id="hero-login-button"
                     type="button"
                     onClick={() => setIsLoginModalOpen(true)}
-                    className="btn py-2.5 px-3.5 text-xs flex items-center gap-2 shadow-[4px_4px_0_#121212] font-mono font-bold cursor-pointer bg-white hover:bg-neutral-100 border-2 border-[#121212] active:translate-x-0.5 active:translate-y-0.5 transition"
+                    className="btn py-2 px-3 text-xs flex items-center gap-1.5 shadow-[3px_3px_0_#121212] font-mono font-bold cursor-pointer bg-white hover:bg-neutral-100 border-2 border-[#121212] active:translate-x-0.5 active:translate-y-0.5 transition"
                   >
                     <LogIn className="w-3.5 h-3.5 text-[#ff4d00]" />
                     <span>เข้าสู่ระบบ</span>
@@ -447,7 +391,7 @@ export default function ReaderDashboard() {
                     setEditingBook(null);
                     setIsAddBookModalOpen(true);
                   }}
-                  className="btn btn-primary py-2.5 px-4 text-xs flex items-center gap-2 shadow-[4px_4px_0_#121212] hover:shadow-[6px_6px_0_#121212] active:translate-x-0.5 active:translate-y-0.5 font-bold cursor-pointer transition"
+                  className="btn btn-primary py-2 px-3.5 sm:px-4 text-xs flex items-center gap-1.5 shadow-[3px_3px_0_#121212] hover:shadow-[5px_5px_0_#121212] active:translate-x-0.5 active:translate-y-0.5 font-bold cursor-pointer transition"
                 >
                   <Plus className="w-4 h-4" />
                   <span>เพิ่มหนังสือ</span>
@@ -455,69 +399,111 @@ export default function ReaderDashboard() {
               </div>
             </section>
 
-            {/* Variation 2 Stats Grid */}
+            {/* Stats Grid - High Legibility Numbers with Cards */}
             <section id="stats-grid-section" className="stats-grid">
-              <div>
-                <span className="label">ความต่อเนื่อง</span>
-                <div className="stat-value">
-                  7 <span className="text-base font-sans font-normal opacity-60">วัน</span>
+              <div className="stat-card-mobile">
+                <div className="flex items-center gap-1.5 label m-0 mb-1 text-[10px] sm:text-[11px] text-neutral-600">
+                  <Flame className="w-3.5 h-3.5 text-[#ff4d00]" />
+                  <span>ความต่อเนื่อง</span>
+                </div>
+                <div className="stat-value font-number font-extrabold text-2xl sm:text-3xl text-[#121212] tabular-nums">
+                  7 <span className="text-xs sm:text-sm font-sans font-medium text-neutral-500">วัน</span>
                 </div>
               </div>
-              <div>
-                <span className="label">ความเร็ว</span>
-                <div className="stat-value">
-                  17.4 <span className="text-base font-sans font-normal opacity-60">หน้า/วัน</span>
+
+              <div className="stat-card-mobile">
+                <div className="flex items-center gap-1.5 label m-0 mb-1 text-[10px] sm:text-[11px] text-neutral-600">
+                  <TrendingUp className="w-3.5 h-3.5 text-blue-600" />
+                  <span>ความเร็ว</span>
+                </div>
+                <div className="stat-value font-number font-extrabold text-2xl sm:text-3xl text-[#121212] tabular-nums">
+                  17.4 <span className="text-xs sm:text-sm font-sans font-medium text-neutral-500">หน้า/วัน</span>
                 </div>
               </div>
-              <div>
-                <span className="label">อ่านจบแล้ว</span>
-                <div className="stat-value">
-                  {completedBooks} / {totalBooks}
+
+              <div className="stat-card-mobile">
+                <div className="flex items-center gap-1.5 label m-0 mb-1 text-[10px] sm:text-[11px] text-neutral-600">
+                  <Award className="w-3.5 h-3.5 text-amber-500" />
+                  <span>คุณอ่านจบไปแล้ว</span>
+                </div>
+                <div className="stat-value font-number font-extrabold text-2xl sm:text-3xl text-[#121212] tabular-nums">
+                  {completedBooks} <span className="text-sm font-sans font-normal text-neutral-400">/</span> {totalBooks} <span className="text-xs sm:text-sm font-sans font-medium text-neutral-500">เล่ม</span>
                 </div>
               </div>
-              <div>
-                <span className="label">รวมหน้าที่อ่าน</span>
-                <div className="stat-value">
-                  {totalPagesRead.toLocaleString()} <span className="text-base font-sans font-normal opacity-60">หน้า</span>
+
+              <div className="stat-card-mobile">
+                <div className="flex items-center gap-1.5 label m-0 mb-1 text-[10px] sm:text-[11px] text-neutral-600">
+                  <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>คุณอ่านไปแล้วทั้งหมด</span>
+                </div>
+                <div className="stat-value font-number font-extrabold text-2xl sm:text-3xl text-[#121212] tabular-nums">
+                  {totalPagesRead.toLocaleString()} <span className="text-xs sm:text-sm font-sans font-medium text-neutral-500">หน้า</span>
                 </div>
               </div>
             </section>
 
-            {/* Variation 2 Active Book Box */}
-            {activeBook ? (
-              <section id="active-book-focus-box" className="active-book-box">
-                <img 
-                  src={activeBook.coverUrl || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80"} 
-                  alt={activeBook.title} 
-                  className="book-img"
-                />
-                <div className="flex flex-col justify-between">
-                  <div>
-                    <span className="badge">เล่มที่กำลังอ่าน</span>
-                    <h2 style={{ fontFamily: 'Syne, sans-serif', fontSize: '1.4rem', margin: '0.5rem 0 0.25rem', letterSpacing: '-0.02em', lineHeight: '1.15' }}>
-                      {activeBook.title}
-                    </h2>
-                    <div style={{ opacity: 0.75, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.75rem' }} className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="badge py-0.5 px-1.5 text-[10px] bg-[#121212]/5">{activeBook.category}</span>
-                      <span className="opacity-40">•</span>
-                      <span>โดย {activeBook.author}</span>
+            {/* Active Book Box - Book on Left, Details on Right, Equal Action Buttons */}
+            {activeBook && (
+              <section id="active-book-focus-box" className="bg-[#ffffff] border-2 border-[#121212] p-3.5 sm:p-6 shadow-[5px_5px_0_#121212] sm:shadow-[8px_8px_0_#121212]">
+                <div className="space-y-3.5 sm:space-y-4">
+                  {/* Top: Book on the Left, Book Details on the Right */}
+                  <div className="flex flex-row gap-3 sm:gap-5 items-start">
+                    {/* Left: Book Cover Image */}
+                    <div className="shrink-0">
+                      <img 
+                        src={activeBook.coverUrl || "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80"} 
+                        alt={activeBook.title} 
+                        className="w-20 sm:w-28 md:w-32 aspect-[3/4] object-cover border-2 border-[#121212] shadow-[3px_3px_0_#121212]"
+                      />
                     </div>
 
-                    <div className="progress-container">
-                      <div className="label" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                        <span>ความคืบหน้า: {activeBook.currentPage}/{activeBook.totalPages} หน้า</span>
-                        <span className="text-[#8B0000] font-bold">{activeProgress}% สำเร็จ</span>
+                    {/* Right: Book Details */}
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                      <div className="flex items-center gap-1.5 flex-wrap mb-1">
+                        <span className="badge py-0.5 px-1.5 text-[10px] bg-[#121212]/5">
+                          {activeBook.category}
+                        </span>
                       </div>
-                      <div className="progress-bar border border-[#121212]">
-                        <div 
-                          className="progress-fill bg-[#8B0000]" 
-                          style={{ width: `${activeProgress}%`, backgroundColor: '#8B0000' }}
-                        />
+
+                      <h2 className="font-display text-base sm:text-2xl font-bold tracking-tight text-[#121212] mt-0.5 leading-snug line-clamp-2">
+                        {activeBook.title}
+                      </h2>
+                      <div className="text-xs font-mono text-[#121212]/70 mt-1 truncate">
+                        โดย {activeBook.author}
                       </div>
                     </div>
+                  </div>
 
-                    <div className="label" style={{ marginTop: '0.5rem' }}>บันทึกการอ่านด่วน</div>
-                    <div className="btn-group" style={{ marginTop: '0.5rem', gap: '0.5rem' }}>
+                  {/* แถบหลอดพลัง (Long Energy Progress Bar) - จัดเรียงสวยงามเต็มความกว้าง */}
+                  <div className="p-3 bg-[#f8f7f4] border-2 border-[#121212] shadow-[2px_2px_0_#121212]">
+                    <div className="flex justify-between items-baseline mb-1.5 text-xs">
+                      <span className="font-mono text-neutral-700 flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#ff4d00] animate-pulse shrink-0" />
+                        <span>อ่านไปแล้ว: <strong className="font-number font-bold text-[#121212] text-sm">{activeBook.currentPage} / {activeBook.totalPages} หน้า</strong></span>
+                      </span>
+                      <span className="font-number font-extrabold text-[#8B0000] text-sm sm:text-base tabular-nums">
+                        {activeProgress}%
+                      </span>
+                    </div>
+                    {/* หลอดพลังขนาดยาวขึ้นและมีเอฟเฟกต์สีเด่นชัด */}
+                    <div className="w-full h-3.5 sm:h-4 bg-white border-2 border-[#121212] p-[1px] overflow-hidden shadow-[inset_1px_1px_2px_rgba(0,0,0,0.08)]">
+                      <div 
+                        className="h-full bg-gradient-to-r from-[#8B0000] via-[#c41e3a] to-[#ff4d00] transition-all duration-300 relative"
+                        style={{ width: `${activeProgress}%` }}
+                      >
+                        <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.25)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.25)_50%,rgba(255,255,255,0.25)_75%,transparent_75%)] bg-[length:12px_12px] opacity-40" />
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] sm:text-[11px] font-mono text-neutral-500 mt-1">
+                      <span>เป้าหมาย: <strong className="font-number font-bold text-[#121212]">{activeBook.targetPagesPerDay || 20}</strong> หน้า/วัน</span>
+                      <span>เหลือ {Math.max(0, activeBook.totalPages - activeBook.currentPage)} หน้า</span>
+                    </div>
+                  </div>
+
+                  {/* Quick Log Buttons - Large and Easy to Tap */}
+                  <div className="pt-0.5">
+                    <div className="label text-[10px] sm:text-[11px] mb-1.5">บันทึกการอ่านด่วน (เพิ่มหน้า)</div>
+                    <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                       {[5, 10, 20].map((inc) => (
                         <button 
                           key={inc}
@@ -525,8 +511,7 @@ export default function ReaderDashboard() {
                             handleQuickLogPages(activeBook, inc);
                             confetti({ particleCount: 25, spread: 40 });
                           }}
-                          className="btn" 
-                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.65rem' }}
+                          className="py-2 px-1 text-center font-number font-bold text-xs bg-white hover:bg-neutral-100 border-2 border-[#121212] shadow-[2px_2px_0_#121212] active:translate-x-0.5 active:translate-y-0.5 transition cursor-pointer" 
                         >
                           +{inc} หน้า
                         </button>
@@ -536,26 +521,15 @@ export default function ReaderDashboard() {
                           setSelectedBookForLog(activeBook.id);
                           setIsQuickLogModalOpen(true);
                         }}
-                        className="btn btn-primary" 
-                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.65rem' }}
+                        className="py-2 px-1 text-center font-mono font-bold text-xs bg-[#121212] text-white hover:bg-neutral-800 border-2 border-[#121212] shadow-[2px_2px_0_#ff4d00] active:translate-x-0.5 active:translate-y-0.5 transition cursor-pointer" 
                       >
                         ระบุเอง
                       </button>
                     </div>
                   </div>
 
-                  <div className="pt-3 mt-4 border-t border-[#121212]/10 flex flex-wrap items-center gap-2">
-                    <button
-                      onClick={() => {
-                        setEditingBook(activeBook);
-                        setIsAddBookModalOpen(true);
-                      }}
-                      className="btn text-[11px] py-1.5 px-3 flex items-center gap-1.5"
-                      title="แก้ไขข้อมูลหรือเปลี่ยนรูปภาพหน้าปก"
-                    >
-                      <Edit3 className="w-3 h-3" />
-                      <span>แก้ไข / เปลี่ยนรูป</span>
-                    </button>
+                  {/* Bottom Action Buttons: Equal Size with 'อ่านจบ' */}
+                  <div className="pt-2 sm:pt-3 border-t border-[#121212]/15 grid grid-cols-2 gap-2 sm:gap-3">
                     <button
                       onClick={() => {
                         handleUpdateBook({
@@ -566,62 +540,120 @@ export default function ReaderDashboard() {
                         });
                         confetti({ particleCount: 70, spread: 60 });
                       }}
-                      className="btn text-[11px] py-1.5 px-3"
+                      className="btn btn-primary py-2.5 px-3 text-xs sm:text-sm font-bold shadow-[2px_2px_0_#121212] flex items-center justify-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5 transition cursor-pointer"
                     >
-                      อ่านจบเล่มนี้แล้ว
+                      <CheckCircle2 className="w-4 h-4 shrink-0" />
+                      <span>อ่านจบ</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingBook(activeBook);
+                        setIsAddBookModalOpen(true);
+                      }}
+                      className="btn py-2.5 px-3 text-xs sm:text-sm font-bold bg-white text-[#121212] border-2 border-[#121212] shadow-[2px_2px_0_#121212] hover:bg-neutral-50 flex items-center justify-center gap-1.5 active:translate-x-0.5 active:translate-y-0.5 transition cursor-pointer"
+                      title="แก้ไขข้อมูลหรือเปลี่ยนรูปภาพหน้าปก"
+                    >
+                      <Edit3 className="w-4 h-4 shrink-0" />
+                      <span>แก้ไข</span>
                     </button>
                   </div>
                 </div>
               </section>
-            ) : (
-              <section id="active-book-focus-box" className="active-book-box border-2 border-dashed border-[#121212]/30 flex flex-col items-center justify-center text-center p-8 bg-[#f8f7f4]">
-                <BookOpen className="w-10 h-10 opacity-30 mb-2" />
-                <h3 className="font-bold text-base mb-1" style={{ fontFamily: 'Syne, sans-serif' }}>ยังไม่มีหนังสือในคลัง</h3>
-                <p className="text-xs font-mono opacity-60 mb-4">เพิ่มหนังสือเล่มแรกเพื่อเริ่มบันทึกและให้บอท LINE ช่วยติดตามกองดอง</p>
-                <button
-                  onClick={() => setIsAddBookModalOpen(true)}
-                  className="btn bg-[#ff4d00] text-white border-2 border-[#121212] text-xs py-2 px-4 shadow-[3px_3px_0_#121212] font-mono cursor-pointer"
-                >
-                  + เพิ่มหนังสือเล่มแรก
-                </button>
-              </section>
             )}
 
-            {/* Variation 2 Collection List Table */}
-            <section id="collection-list-section" className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <span className="label m-0">รายการหนังสือในคลัง</span>
-                <button
-                  onClick={() => setActiveTab('library')}
-                  className="font-mono text-xs uppercase tracking-wider underline hover:text-[#ff4d00] transition cursor-pointer"
-                >
-                  จัดการหนังสือทั้งหมด ({books.length}) →
-                </button>
+            {/* Collection List Section - Dual View: Mobile Cards vs Desktop Table */}
+            <section id="collection-list-section" className="space-y-3 sm:space-y-4">
+              <div>
+                <span className="label m-0 text-xs sm:text-sm">รายการหนังสือในคลัง ({books.length})</span>
               </div>
 
-              <div className="overflow-x-auto border-2 border-[#121212] bg-[#ffffff] shadow-[8px_8px_0_#121212]">
+              {/* Mobile View: Clean, Stacked Touch Cards (Display First 3 Books) */}
+              <div className="block md:hidden space-y-2.5">
+                {books.slice(0, 3).map((book) => {
+                  const prog = Math.round((book.currentPage / (book.totalPages || 1)) * 100);
+                  const isCurrent = book.id === activeBookId;
+                  return (
+                    <div 
+                      key={book.id} 
+                      className="bg-white border-2 border-[#121212] p-3 shadow-[3px_3px_0_#121212] space-y-2"
+                    >
+                      <div className="flex items-start gap-3">
+                        {book.coverUrl ? (
+                          <img
+                            src={book.coverUrl}
+                            alt={book.title}
+                            className="w-12 h-16 aspect-[3/4] object-cover border border-[#121212] shrink-0 shadow-[2px_2px_0_#121212]"
+                          />
+                        ) : (
+                          <div className="w-12 h-16 aspect-[3/4] border border-[#121212] bg-[#f8f7f4] flex items-center justify-center text-base shrink-0 shadow-[2px_2px_0_#121212]">
+                            {book.coverEmoji || '📖'}
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-sm text-[#121212] truncate">
+                            {book.title}
+                          </div>
+                          <div className="text-[11px] font-mono text-neutral-500 truncate mt-0.5">
+                            {book.category} • โดย {book.author}
+                          </div>
+                          <div className="mt-2 space-y-1">
+                            <div className="flex justify-between items-center text-[11px] font-mono">
+                              <span className="font-number font-bold text-[#121212]">{prog}%</span>
+                              <span className="font-number text-neutral-500">({book.currentPage}/{book.totalPages} หน้า)</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-neutral-200 border border-[#121212]/30 overflow-hidden">
+                              <div className="h-full bg-[#8B0000] transition-all" style={{ width: `${prog}%` }} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-neutral-100 text-xs">
+                        {isCurrent ? (
+                          <span className="text-[11px] font-mono font-bold text-[#ff4d00] flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-[#ff4d00]" />
+                            <span>กำลังอ่านเล่มนี้</span>
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => setActiveBookId(book.id)}
+                            className="text-[11px] font-mono font-bold px-2.5 py-1 border border-[#121212] bg-white hover:bg-[#121212] hover:text-white transition shadow-[2px_2px_0_#121212]"
+                          >
+                            เลือกอ่านเล่มนี้
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setEditingBook(book);
+                            setIsAddBookModalOpen(true);
+                          }}
+                          className="p-1 px-2 border border-[#121212] text-xs font-mono flex items-center gap-1 bg-white hover:bg-neutral-100"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          <span>แก้ไข</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop View: Full Data Table (Display First 3 Books) */}
+              <div className="hidden md:block overflow-x-auto border-2 border-[#121212] bg-[#ffffff] shadow-[8px_8px_0_#121212]">
                 <table className="archive-table mt-0">
                   <thead>
                     <tr className="bg-[#121212]/5">
                       <th>รูป / ข้อมูลหนังสือ</th>
-                      <th>สถานะ</th>
                       <th>ความคืบหน้า</th>
                       <th className="text-right">จัดการ</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {books.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="text-center py-10 font-mono text-sm opacity-60">
-                          ยังไม่มีหนังสือในระบบ กดปุ่ม &quot;+ เพิ่มหนังสือใหม่&quot; ด้านบนเพื่อเริ่มต้น
-                        </td>
-                      </tr>
-                    ) : (
-                      books.map((book) => {
-                        const prog = Math.round((book.currentPage / (book.totalPages || 1)) * 100);
-                        const isCurrent = book.id === activeBookId;
-                        return (
-                          <tr key={book.id} className={isCurrent ? 'bg-[#ff4d00]/5' : ''}>
+                    {books.slice(0, 3).map((book) => {
+                      const prog = Math.round((book.currentPage / (book.totalPages || 1)) * 100);
+                      const isCurrent = book.id === activeBookId;
+                      return (
+                        <tr key={book.id} className={isCurrent ? 'bg-[#ff4d00]/5' : ''}>
                           <td style={{ fontWeight: 600 }}>
                             <div className="flex items-center gap-3">
                               {book.coverUrl ? (
@@ -649,15 +681,10 @@ export default function ReaderDashboard() {
                             </div>
                           </td>
                           <td>
-                            <span className="badge">
-                              {book.status === 'reading' ? 'กำลังอ่าน' : book.status === 'completed' ? 'อ่านจบแล้ว' : 'กองดอง'}
-                            </span>
-                          </td>
-                          <td style={{ fontFamily: 'JetBrains Mono, monospace' }}>
                             <div className="space-y-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold">{prog}%</span>
-                                <span className="opacity-50 text-[11px]">({book.currentPage}/{book.totalPages} หน้า)</span>
+                              <div className="flex items-center gap-2 font-number">
+                                <span className="font-bold text-sm">{prog}%</span>
+                                <span className="opacity-60 text-xs font-mono">({book.currentPage}/{book.totalPages} หน้า)</span>
                               </div>
                               <div className="w-28 h-1.5 bg-[#121212]/10 border border-[#121212]/30 overflow-hidden">
                                 <div className="h-full bg-[#8B0000] transition-all" style={{ width: `${prog}%` }} />
@@ -688,10 +715,23 @@ export default function ReaderDashboard() {
                           </td>
                         </tr>
                       );
-                    }))}
+                    })}
                   </tbody>
                 </table>
               </div>
+
+              {/* Show more button when more than 3 books */}
+              {books.length > 3 && (
+                <div className="pt-2 text-center">
+                  <button
+                    onClick={() => setActiveTab('library')}
+                    className="w-full sm:w-auto py-2.5 px-5 bg-white hover:bg-[#121212] hover:text-white border-2 border-[#121212] shadow-[3px_3px_0_#121212] text-xs font-mono font-bold transition flex items-center justify-center gap-2 cursor-pointer active:translate-x-0.5 active:translate-y-0.5 mx-auto"
+                  >
+                    <span>จัดการหนังสือทั้งหมด ({books.length} เล่ม)</span>
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </section>
 
             {/* Embedded Velocity Telemetry Chart */}
@@ -704,58 +744,54 @@ export default function ReaderDashboard() {
             </section>
 
             {/* Bottom LINE Webhook Telemetry Card */}
-            <section id="line-sync-telemetry-section" className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-4">
-              <div className="lg:col-span-6 bg-white border-2 border-[#121212] p-6 sm:p-8 space-y-4 shadow-[8px_8px_0_#121212]">
-                <div className="flex items-center justify-between pb-3 border-b-2 border-[#121212]">
+            <section id="line-sync-telemetry-section" className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-8 pt-2 sm:pt-4">
+              <div className="lg:col-span-6 bg-white border-2 border-[#121212] p-4 sm:p-6 lg:p-8 space-y-4 shadow-[4px_4px_0_#121212] sm:shadow-[8px_8px_0_#121212]">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-[#ff4d00] animate-pulse" />
-                    <h3 className="font-display text-xl font-bold text-[#121212]">เชื่อมต่อ LINE สำหรับแจ้งเตือน</h3>
+                    <h3 className="font-display text-lg sm:text-xl font-bold text-[#121212]">เชื่อมต่อ LINE สำหรับแจ้งเตือน</h3>
                   </div>
                   <span className="badge">
                     ออนไลน์
                   </span>
                 </div>
 
-                <p className="text-xs font-mono text-[#121212]/70 leading-relaxed">
-                  ระบบแจ้งเตือนทุกคืนเวลา {schedule.reminderTime} น. พร้อมปุ่มตอบกลับด่วน (Quick Reply) แบบ 1 วินาที
-                </p>
-
-                <div className="p-4 bg-[#f8f7f4] border-2 border-[#121212] space-y-2 text-xs font-mono">
-                  <div className="flex justify-between text-[#121212]/60">
+                <div className="p-3.5 bg-[#f8f7f4] border-2 border-[#121212] space-y-2 text-xs font-mono">
+                  <div className="flex justify-between items-center text-[#121212]/70">
                     <span>เวลาแจ้งเตือน:</span>
-                    <span className="text-[#121212] font-bold">{schedule.reminderTime} น.</span>
+                    <span className="text-[#121212] font-number font-bold text-sm">{schedule.reminderTime} น.</span>
                   </div>
-                  <div className="flex justify-between text-[#121212]/60">
+                  <div className="flex justify-between items-center text-[#121212]/70">
                     <span>เป้าหมายรายวัน:</span>
-                    <span className="text-[#121212] font-bold">{schedule.targetPagesPerDay} หน้า / คืน</span>
+                    <span className="text-[#121212] font-number font-bold text-sm">{schedule.targetPagesPerDay} หน้า / คืน</span>
                   </div>
-                  <div className="flex justify-between text-[#121212]/60">
+                  <div className="flex justify-between items-center text-[#121212]/70">
                     <span>ชื่อผู้ใช้ LINE:</span>
                     <span className="text-[#121212] font-bold">{schedule.lineDisplayName || 'นักอ่าน'}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 pt-2">
+                <div className="flex items-center gap-2 sm:gap-3 pt-1">
                   {!currentUser ? (
                     <button
                       onClick={() => setIsLoginModalOpen(true)}
-                      className="btn btn-primary flex-1 text-xs py-2 flex items-center justify-center gap-1.5"
+                      className="btn btn-primary flex-1 text-xs py-2.5 flex items-center justify-center gap-1.5 shadow-[2px_2px_0_#121212] font-bold cursor-pointer active:translate-x-0.5 active:translate-y-0.5 transition"
                     >
-                      <LogIn className="w-3.5 h-3.5" />
-                      <span>เข้าสู่ระบบเพื่อเชื่อมต่อ LINE</span>
+                      <MessageSquare className="w-3.5 h-3.5 text-[#22c55e]" />
+                      <span>เชื่อมต่อ LINE</span>
                     </button>
                   ) : (
                     <button
                       onClick={() => setIsSchedulerOpen(true)}
-                      className="btn btn-primary flex-1 text-xs py-2 flex items-center justify-center gap-1.5"
+                      className="btn btn-primary flex-1 text-xs py-2.5 flex items-center justify-center gap-1.5 shadow-[2px_2px_0_#121212] font-bold cursor-pointer active:translate-x-0.5 active:translate-y-0.5 transition"
                     >
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>ปรับเปลี่ยนเวลาแจ้งเตือน</span>
+                      <MessageSquare className="w-3.5 h-3.5 text-[#22c55e]" />
+                      <span>เชื่อมต่อ LINE</span>
                     </button>
                   )}
                   <button
                     onClick={() => setIsSchedulerOpen(true)}
-                    className="btn text-xs py-2 px-4"
+                    className="btn text-xs py-2.5 px-3 sm:px-4 bg-white border-2 border-[#121212] shadow-[2px_2px_0_#121212] font-bold cursor-pointer hover:bg-neutral-50 active:translate-x-0.5 active:translate-y-0.5 transition"
                   >
                     ตั้งค่า
                   </button>
@@ -763,26 +799,28 @@ export default function ReaderDashboard() {
               </div>
 
               {/* Latest Reading Telemetry Logs */}
-              <div className="lg:col-span-6 bg-white border-2 border-[#121212] p-6 sm:p-8 space-y-4 shadow-[8px_8px_0_#121212]">
+              <div className="lg:col-span-6 bg-white border-2 border-[#121212] p-4 sm:p-6 lg:p-8 space-y-4 shadow-[4px_4px_0_#121212] sm:shadow-[8px_8px_0_#121212]">
                 <div className="flex items-center justify-between pb-3 border-b-2 border-[#121212]">
-                  <h3 className="font-display text-xl font-bold text-[#121212]">ประวัติการอ่านล่าสุด</h3>
-                  <span className="label m-0">5 รายการล่าสุด</span>
+                  <h3 className="font-display text-lg sm:text-xl font-bold text-[#121212]">ประวัติการอ่านล่าสุด</h3>
+                  <span className="label m-0 text-[11px]">5 รายการล่าสุด</span>
                 </div>
 
                 <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
                   {logs.slice(0, 5).map((log) => (
                     <div 
                       key={log.id}
-                      className="p-3 bg-[#f8f7f4] border border-[#121212] flex items-center justify-between text-xs"
+                      className="p-2.5 sm:p-3 bg-[#f8f7f4] border border-[#121212] flex items-center justify-between text-xs"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono font-bold text-[#ff4d00]">+{log.pagesRead} หน้า</span>
-                        <div>
-                          <div className="font-semibold line-clamp-1">{log.bookTitle}</div>
-                          <div className="text-[10px] font-mono text-[#121212]/50">{log.timestamp}</div>
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+                        <span className="font-number font-bold text-[#ff4d00] text-sm tabular-nums shrink-0">+{log.pagesRead} หน้า</span>
+                        <div className="min-w-0">
+                          <div className="font-semibold truncate text-xs">{log.bookTitle}</div>
+                          <div className="text-[10px] font-mono text-[#121212]/50 truncate">{log.timestamp}</div>
                         </div>
                       </div>
-                      <span className="badge">ถึงหน้า {log.toPage}</span>
+                      <span className="badge shrink-0 text-[10px]">
+                        ถึงหน้า <strong className="font-number font-bold">{log.toPage}</strong>
+                      </span>
                     </div>
                   ))}
                 </div>

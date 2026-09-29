@@ -76,17 +76,17 @@ export const SchedulerSettingsModal: React.FC<SchedulerSettingsModalProps> = ({
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-[#f8f7f4] border-2 border-[#121212] w-full max-w-lg p-6 relative max-h-[90vh] overflow-y-auto shadow-[12px_12px_0_#121212]"
+        className="bg-[#f8f7f4] border-2 border-[#121212] w-full max-w-lg p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto shadow-[6px_6px_0_#121212] sm:shadow-[12px_12px_0_#121212]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b-2 border-[#121212] mb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 border-2 border-[#121212] bg-white flex items-center justify-center text-[#121212]">
+        <div className="flex items-center justify-between pb-3 border-b-2 border-[#121212] mb-4 sm:mb-5">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 border-2 border-[#121212] bg-white flex items-center justify-center text-[#121212]">
               <Calendar className="w-4 h-4 text-[#ff4d00]" />
             </div>
             <div>
-              <span className="label m-0">ตารางและการแจ้งเตือน</span>
-              <h3 className="font-display text-2xl font-extrabold text-[#121212]">ตั้งเวลาแจ้งเตือนอัจฉริยะ</h3>
+              <span className="label m-0 text-[10px] sm:text-xs">ตารางและการแจ้งเตือน</span>
+              <h3 className="font-display text-lg sm:text-2xl font-extrabold text-[#121212]">ตั้งเวลาแจ้งเตือนอัจฉริยะ</h3>
             </div>
           </div>
 
