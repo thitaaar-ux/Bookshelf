@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Settings, ShieldCheck, CheckCircle2, AlertTriangle, 
-  RefreshCw, Database, Terminal, Cpu, Sparkles, 
-  ExternalLink, Key, Zap 
+import {
+  Settings, ShieldCheck, CheckCircle2, AlertTriangle,
+  RefreshCw, Database, Terminal, Cpu, Sparkles,
+  ExternalLink, Key, Zap
 } from 'lucide-react';
 
 interface AdminSettingsTabProps {
@@ -131,7 +131,7 @@ export const AdminSettingsTab: React.FC<AdminSettingsTabProps> = ({ onResetData 
 
             <div className="flex items-center justify-between p-3 rounded-xl bg-neutral-950 border border-neutral-800">
               <span className="text-neutral-400">Runtime &amp; Port:</span>
-              <span className="font-mono text-neutral-200">Bun / Node.js • Port 3001</span>
+              <span className="font-mono text-neutral-200">Bun / Node.js • Port 3005</span>
             </div>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  LayoutDashboard, Users, BookOpen, Radio, 
-  Settings, ArrowLeft, ShieldCheck, Activity, 
-  Menu, X, Sparkles, ExternalLink, ChevronRight, MessageSquare, CreditCard, Database 
+import {
+  LayoutDashboard, Users, BookOpen, Radio,
+  Settings, ArrowLeft, ShieldCheck, Activity,
+  Menu, X, Sparkles, ExternalLink, ChevronRight, MessageSquare, CreditCard, Database
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -85,11 +85,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     onSelectTab(item.id);
                     setIsMobileMenuOpen(false);
                   }}
-                  className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    isActive
+                  className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${isActive
                       ? 'bg-neutral-800 text-white font-semibold shadow-sm border border-neutral-700/80'
                       : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-850/50'
-                  }`}
+                    }`}
                 >
                   <Icon className={`w-4 h-4 ${isActive ? 'text-sky-400' : 'text-neutral-400'}`} />
                   <span>{item.label}</span>
@@ -134,7 +133,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           <div className="flex items-center space-x-3 text-xs">
             <div className="hidden sm:flex items-center space-x-2 px-3 py-1 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-300">
               <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Next.js API: <span className="font-mono text-emerald-400">Port 3001</span></span>
+              <span>Next.js API: <span className="font-mono text-emerald-400">Port 3005</span></span>
             </div>
 
             <button

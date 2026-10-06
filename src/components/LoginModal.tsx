@@ -274,14 +274,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 {currentUser.email && (
                   <p className="text-xs font-mono text-neutral-600 truncate">{currentUser.email}</p>
                 )}
-                {currentUser.lineUserId && (
-                  <p className="text-[10px] font-mono text-emerald-700 truncate">
-                    LINE: {currentUser.lineUserId}
-                  </p>
-                )}
-                <p className="text-[10px] font-mono text-neutral-500 mt-0.5">
-                  🔥 ต่อเนื่อง {currentUser.streakDays} วัน • สมัครเมื่อ {currentUser.joinedAt}
-                </p>
               </div>
             </div>
 

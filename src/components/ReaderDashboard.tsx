@@ -39,6 +39,50 @@ import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'motion/react';
 import { AddBookModal } from './AddBookModal';
 
+const LOGIN_SESSION_KEY = 'tsundoku_user';
+const LOGIN_SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
+
+interface StoredLoginSession {
+  user: UserProfile;
+  expiresAt: number;
+}
+
+function saveLoginSession(user: UserProfile) {
+  const session: StoredLoginSession = {
+    user,
+    expiresAt: Date.now() + LOGIN_SESSION_DURATION_MS,
+  };
+  localStorage.setItem(LOGIN_SESSION_KEY, JSON.stringify(session));
+}
+
+function loadLoginSession(): UserProfile | null {
+  try {
+    const savedSession = localStorage.getItem(LOGIN_SESSION_KEY);
+    if (!savedSession) return null;
+
+    const parsed = JSON.parse(savedSession) as Partial<StoredLoginSession> & UserProfile;
+
+    if (parsed.user && typeof parsed.expiresAt === 'number') {
+      if (parsed.expiresAt <= Date.now()) {
+        localStorage.removeItem(LOGIN_SESSION_KEY);
+        return null;
+      }
+      return parsed.user;
+    }
+
+    // Migrate sessions created before the 30-day expiry was added.
+    if (parsed.id && parsed.name) {
+      const user = parsed as UserProfile;
+      saveLoginSession(user);
+      return user;
+    }
+  } catch {
+    localStorage.removeItem(LOGIN_SESSION_KEY);
+  }
+
+  return null;
+}
+
 export default function ReaderDashboard() {
   const [books, setBooks] = useState<Book[]>(INITIAL_BOOKS);
   const [logs, setLogs] = useState<ReadingLog[]>(INITIAL_READING_LOGS);
@@ -66,7 +110,7 @@ export default function ReaderDashboard() {
   const handleLogin = (user: UserProfile) => {
     setCurrentUser(user);
     try {
-      localStorage.setItem('tsundoku_user', JSON.stringify(user));
+      saveLoginSession(user);
     } catch {}
     setToastMessage(`ยินดีต้อนรับ ${user.name}! เข้าสู่ระบบเรียบร้อย`);
   };
@@ -74,10 +118,38 @@ export default function ReaderDashboard() {
   const handleLogout = () => {
     setCurrentUser(null);
     try {
-      localStorage.removeItem('tsundoku_user');
+      localStorage.removeItem(LOGIN_SESSION_KEY);
     } catch {}
     setToastMessage('ออกจากระบบเรียบร้อยแล้ว');
   };
+
+  // LINE OAuth redirects back to the app with the authenticated profile in the
+  // query string. Hydrate the client session before the normal localStorage
+  // bootstrap runs, then remove the profile from the address bar.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const lineLogin = params.get('line_login');
+    const encodedUser = params.get('user');
+
+    if (lineLogin === 'success' && encodedUser) {
+      try {
+        const user = JSON.parse(encodedUser) as UserProfile;
+        setCurrentUser(user);
+        saveLoginSession(user);
+        setToastMessage(`ยินดีต้อนรับ ${user.name}! เข้าสู่ระบบ LINE สำเร็จ`);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch (error) {
+        console.error('Failed to hydrate LINE login:', error);
+        setToastMessage('เข้าสู่ระบบ LINE สำเร็จ แต่โหลดข้อมูลผู้ใช้ไม่สำเร็จ');
+      }
+    }
+
+    const lineError = params.get('line_error');
+    if (lineError) {
+      setToastMessage(`เข้าสู่ระบบ LINE ไม่สำเร็จ: ${lineError}`);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Manual Quick Log Form
   const [pagesToLog, setPagesToLog] = useState(15);
@@ -97,8 +169,8 @@ export default function ReaderDashboard() {
   useEffect(() => {
     // 1. Initial local load for instant paint
     try {
-      const savedUser = localStorage.getItem('tsundoku_user');
-      if (savedUser) setCurrentUser(JSON.parse(savedUser));
+      const savedUser = loadLoginSession();
+      if (savedUser) setCurrentUser(savedUser);
 
       const savedBooks = localStorage.getItem('tsundoku_books');
       if (savedBooks) setBooks(JSON.parse(savedBooks));
