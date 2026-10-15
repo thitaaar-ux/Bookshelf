@@ -120,33 +120,42 @@ export default function ReaderDashboard() {
     try {
       localStorage.removeItem(LOGIN_SESSION_KEY);
     } catch {}
+    void fetch('/api/auth/logout', { method: 'POST' });
     setToastMessage('ออกจากระบบเรียบร้อยแล้ว');
   };
 
-  // LINE OAuth redirects back to the app with the authenticated profile in the
+  // OAuth redirects back to the app with the authenticated profile in the
   // query string. Hydrate the client session before the normal localStorage
   // bootstrap runs, then remove the profile from the address bar.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const lineLogin = params.get('line_login');
+    const googleLogin = params.get('google_login');
     const encodedUser = params.get('user');
 
-    if (lineLogin === 'success' && encodedUser) {
+    if ((lineLogin === 'success' || googleLogin === 'success') && encodedUser) {
       try {
         const user = JSON.parse(encodedUser) as UserProfile;
         setCurrentUser(user);
         saveLoginSession(user);
-        setToastMessage(`ยินดีต้อนรับ ${user.name}! เข้าสู่ระบบ LINE สำเร็จ`);
+        const provider = googleLogin === 'success' ? 'Google' : 'LINE';
+        setToastMessage(`ยินดีต้อนรับ ${user.name}! เข้าสู่ระบบ ${provider} สำเร็จ`);
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (error) {
-        console.error('Failed to hydrate LINE login:', error);
-        setToastMessage('เข้าสู่ระบบ LINE สำเร็จ แต่โหลดข้อมูลผู้ใช้ไม่สำเร็จ');
+        console.error('Failed to hydrate OAuth login:', error);
+        setToastMessage('เข้าสู่ระบบสำเร็จ แต่โหลดข้อมูลผู้ใช้ไม่สำเร็จ');
       }
     }
 
     const lineError = params.get('line_error');
     if (lineError) {
       setToastMessage(`เข้าสู่ระบบ LINE ไม่สำเร็จ: ${lineError}`);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    const googleError = params.get('google_error');
+    if (googleError) {
+      setToastMessage(`เข้าสู่ระบบ Google ไม่สำเร็จ: ${googleError}`);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
